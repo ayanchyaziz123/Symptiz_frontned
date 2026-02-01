@@ -98,17 +98,18 @@ export const cancelAppointment = createAsyncThunk<
   { rejectValue: string }
 >(
   'appointment/cancel',
-  async (appointmentId, { rejectWithValue }) => {
-    try {
-      // TODO: Replace with actual API call
-      // const response = await axios.patch(`${API_URL}/${appointmentId}/cancel/`);
-      // return response.data;
-      
-      return appointmentId;
-    } catch (error) {
-      const axiosError = error as AxiosError;
-      return rejectWithValue(axiosError.message || 'Failed to cancel appointment');
-    }
+  async (appointmentId) => {
+    // TODO: Replace with actual API call
+    // When you implement the API call, add back try-catch:
+    // try {
+    //   const response = await axios.patch(`${API_URL}/${appointmentId}/cancel/`);
+    //   return response.data;
+    // } catch (error) {
+    //   const axiosError = error as AxiosError;
+    //   return rejectWithValue(axiosError.message || 'Failed to cancel appointment');
+    // }
+    
+    return appointmentId;
   }
 );
 
