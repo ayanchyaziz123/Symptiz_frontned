@@ -48,24 +48,25 @@ export const createAppointment = createAsyncThunk<
   { rejectValue: string }
 >(
   'appointment/create',
-  async (appointmentData, { rejectWithValue }) => {
-    try {
-      // TODO: Replace with actual API call
-      // const response = await axios.post(`${API_URL}/`, appointmentData);
-      // return response.data;
-      
-      // Mock response
-      const newAppointment: Appointment = {
-        ...appointmentData,
-        id: Date.now(),
-        status: 'scheduled',
-        createdAt: new Date().toISOString(),
-      };
-      return newAppointment;
-    } catch (error) {
-      const axiosError = error as AxiosError;
-      return rejectWithValue(axiosError.message || 'Failed to book appointment');
-    }
+  async (appointmentData) => {
+    // TODO: Replace with actual API call
+    // When you implement the API call, add back try-catch:
+    // try {
+    //   const response = await axios.post(`${API_URL}/`, appointmentData);
+    //   return response.data;
+    // } catch (error) {
+    //   const axiosError = error as AxiosError;
+    //   return rejectWithValue(axiosError.message || 'Failed to book appointment');
+    // }
+    
+    // Mock response
+    const newAppointment: Appointment = {
+      ...appointmentData,
+      id: Date.now(),
+      status: 'scheduled',
+      createdAt: new Date().toISOString(),
+    };
+    return newAppointment;
   }
 );
 
@@ -76,18 +77,19 @@ export const fetchAppointments = createAsyncThunk<
   { rejectValue: string }
 >(
   'appointment/fetchAll',
-  async (_, { rejectWithValue }) => {
-    try {
-      // TODO: Replace with actual API call
-      // const response = await axios.get(`${API_URL}/`);
-      // return response.data;
-      
-      // Mock response
-      return [];
-    } catch (error) {
-      const axiosError = error as AxiosError;
-      return rejectWithValue(axiosError.message || 'Failed to fetch appointments');
-    }
+  async () => {
+    // TODO: Replace with actual API call
+    // When you implement the API call, add back try-catch:
+    // try {
+    //   const response = await axios.get(`${API_URL}/`);
+    //   return response.data;
+    // } catch (error) {
+    //   const axiosError = error as AxiosError;
+    //   return rejectWithValue(axiosError.message || 'Failed to fetch appointments');
+    // }
+    
+    // Mock response
+    return [];
   }
 );
 
