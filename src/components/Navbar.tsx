@@ -42,7 +42,7 @@ const Navbar: React.FC = () => {
               <Heart className="w-6 h-6 text-white" />
             </div>
             <span className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-cyan-700 bg-clip-text text-transparent">
-              RadTH
+              symptiZ
             </span>
           </Link>
 
