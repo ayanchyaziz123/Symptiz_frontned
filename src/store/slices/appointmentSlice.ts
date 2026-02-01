@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import { AxiosError } from 'axios';
 
 export interface Appointment {
   id: number;
