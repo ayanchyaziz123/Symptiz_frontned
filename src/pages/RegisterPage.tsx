@@ -20,6 +20,7 @@ const RegisterPage: React.FC = () => {
   const { loading, error, message, fieldErrors, userId } = useAppSelector(
     (state) => state.auth
   );
+  console.log(userId)
 
   const [formData, setFormData] = useState({
     username: '',
