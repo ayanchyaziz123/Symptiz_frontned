@@ -39,7 +39,7 @@ const initialState: AppointmentState = {
   bookingSuccess: false,
 };
 
-const API_URL = 'http://127.0.0.1:8000/api/appointments';
+// const API_URL = 'http://127.0.0.1:8000/api/appointments';
 
 // Async thunk for creating appointment
 export const createAppointment = createAsyncThunk<
