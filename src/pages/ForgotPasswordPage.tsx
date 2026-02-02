@@ -57,22 +57,20 @@ const ForgotPasswordPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-white rounded-xl shadow-sm border border-gray-200 p-8">
         <Link
           to="/login"
-          className="flex items-center text-sm text-teal-600 hover:underline mb-4"
+          className="flex items-center text-sm text-blue-600 hover:text-blue-700 font-medium transition mb-4"
         >
           <ArrowLeft className="w-4 h-4 mr-1" />
           Back to login
         </Link>
 
-        <div className="mb-6 text-center">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Forgot Password
-          </h1>
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-gray-900">Forgot Password?</h1>
           <p className="text-gray-600 mt-2">
-            We’ll send an OTP to your email
+            We'll send an OTP to your email to reset your password
           </p>
         </div>
 
@@ -89,19 +87,19 @@ const ForgotPasswordPage: React.FC = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Email Address
             </label>
             <div
-              className={`flex items-center border-2 rounded-xl px-3 py-2 ${
+              className={`flex items-center border rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition ${
                 validationError
-                  ? 'border-red-500'
+                  ? 'border-red-300 focus-within:ring-red-200 focus-within:border-red-500'
                   : 'border-gray-300'
               }`}
             >
-              <Mail className="w-5 h-5 text-gray-400 mr-2" />
+              <Mail className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
               <input
                 type="email"
                 value={email}
@@ -111,11 +109,12 @@ const ForgotPasswordPage: React.FC = () => {
                   if (error) dispatch(clearError());
                 }}
                 placeholder="email@example.com"
-                className="w-full focus:outline-none"
+                className="w-full focus:outline-none text-gray-900 placeholder-gray-400"
               />
             </div>
             {validationError && (
-              <p className="text-red-500 text-sm mt-1">
+              <p className="text-red-600 text-sm mt-1.5 flex items-center gap-1">
+                <AlertCircle className="w-3.5 h-3.5" />
                 {validationError}
               </p>
             )}
@@ -124,9 +123,35 @@ const ForgotPasswordPage: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-teal-500 to-cyan-600 text-white py-3 rounded-xl font-semibold disabled:opacity-50"
+            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 shadow-sm"
           >
-            {loading ? 'Sending OTP…' : 'Send Reset OTP'}
+            {loading ? (
+              <>
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Sending OTP...
+              </>
+            ) : (
+              'Send Reset OTP'
+            )}
           </button>
         </form>
       </div>

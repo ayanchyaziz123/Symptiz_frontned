@@ -12,6 +12,7 @@ export interface Doctor {
     cost: string;
     acceptingNew: boolean;
     videoVisit: boolean;
+    profilePicture?: string | null;
   }
   
   export interface UrgencyResult {

@@ -37,17 +37,17 @@ const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to={isAuthenticated ? "/dashboard" : "/"} className="flex items-center space-x-2">
-            <div className="bg-gradient-to-r from-teal-500 to-cyan-600 p-2 rounded-lg">
+          <Link to={isAuthenticated ? "/" : "/"} className="flex items-center space-x-2 group">
+            <div className="bg-blue-600 p-2 rounded-lg group-hover:bg-blue-700 transition">
               <Heart className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-cyan-700 bg-clip-text text-transparent">
-              symptiZ
+            <span className="text-2xl font-bold text-gray-900">
+              sympti<span className="text-blue-600">Z</span>
             </span>
           </Link>
 
           {/* Tagline */}
-          <div className="hidden sm:block text-sm text-gray-600">AI-Powered Healthcare</div>
+          <div className="hidden sm:block text-sm text-gray-600 font-medium">AI-Powered Healthcare</div>
 
           {/* Auth Section */}
           <div className="flex items-center space-x-4">
@@ -56,61 +56,52 @@ const Navbar: React.FC = () => {
                 {/* Profile Button */}
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition"
+                  className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition border border-gray-200"
                 >
-                  <div className="bg-gradient-to-r from-teal-500 to-cyan-600 p-2 rounded-full">
+                  <div className="bg-blue-600 p-1.5 rounded-full">
                     <User className="w-4 h-4 text-white" />
                   </div>
-                  <span className="hidden sm:block font-semibold text-gray-700">
+                  <span className="hidden sm:block font-medium text-gray-700 text-sm">
                     {displayName}
                   </span>
-                  <ChevronDown className={`w-4 h-4 text-gray-600 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {/* Dropdown Menu */}
                 {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                     {/* User Info */}
-                    <div className="px-4 py-3 border-b border-gray-200">
+                    <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
                       <p className="text-sm font-semibold text-gray-900">{displayName}</p>
-                      <p className="text-xs text-gray-500 truncate">{email}</p>
+                      <p className="text-xs text-gray-600 truncate mt-0.5">{email}</p>
                     </div>
 
                     {/* Menu Items */}
                     <div className="py-1">
                       <Link
-                        to="/dashboard"
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 transition"
-                      >
-                        <LayoutDashboard className="w-4 h-4 text-teal-600" />
-                        <span>Dashboard</span>
-                      </Link>
-
-                      <Link
                         to="/profile"
                         onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 transition"
+                        className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition"
                       >
-                        <User className="w-4 h-4 text-teal-600" />
+                        <LayoutDashboard className="w-4 h-4 text-blue-600" />
                         <span>My Profile</span>
                       </Link>
 
                       <Link
                         to="/settings"
                         onClick={() => setIsDropdownOpen(false)}
-                        className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-teal-50 transition"
+                        className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition"
                       >
-                        <Settings className="w-4 h-4 text-teal-600" />
+                        <Settings className="w-4 h-4 text-blue-600" />
                         <span>Settings</span>
                       </Link>
                     </div>
 
                     {/* Logout */}
-                    <div className="border-t border-gray-200 pt-1">
+                    <div className="border-t border-gray-200 pt-1 mt-1">
                       <button
                         onClick={handleLogout}
-                        className="flex items-center space-x-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition w-full"
+                        className="flex items-center space-x-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition w-full"
                       >
                         <LogOut className="w-4 h-4" />
                         <span>Logout</span>
@@ -123,13 +114,13 @@ const Navbar: React.FC = () => {
               <>
                 <Link
                   to="/login"
-                  className="text-teal-600 font-semibold hover:underline transition"
+                  className="text-blue-600 font-semibold hover:text-blue-700 transition text-sm"
                 >
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-semibold hover:shadow-lg transition"
+                  className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition shadow-sm text-sm"
                 >
                   Register
                 </Link>

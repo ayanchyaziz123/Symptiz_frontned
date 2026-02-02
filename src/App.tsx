@@ -10,6 +10,9 @@ import VerifyOTPPage from './pages/VerifyOTPPage';
 import DashboardPage from './pages/DashboardPage';
 import BookAppointment from './pages/BookAppointment';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
+import SettingsPage from './pages/Settingspage';
+import DoctorDetails from './pages/DoctorDetails';
 
 // Protected Route for authenticated users only
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -22,14 +25,14 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return <>{children}</>;
 };
 
-// Public Route - redirect to dashboard if already logged in
+// Public Route - redirect to profile if already logged in
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
-  
+
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/profile" replace />;
   }
-  
+
   return <>{children}</>;
 };
 
@@ -68,28 +71,48 @@ const App: React.FC = () => {
                 </PublicRoute>
               } 
             />
-            <Route 
-              path="/verify-otp" 
+            <Route
+              path="/verify-otp"
               element={
                 <PublicRoute>
                   <VerifyOTPPage />
                 </PublicRoute>
-              } 
+              }
+            />
+            <Route
+              path="/reset-password"
+              element={
+                <PublicRoute>
+                  <ResetPasswordPage />
+                </PublicRoute>
+              }
             />
 
             {/* Protected routes - need to be logged in */}
-            <Route 
-              path="/dashboard" 
+            <Route
+              path="/profile"
               element={
                 <ProtectedRoute>
                   <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute>
+                  <SettingsPage />
                 </ProtectedRoute>
               } 
             />
             
             {/* Book Appointment - Can be accessed by anyone, but better experience when logged in */}
             <Route path="/book-appointment" element={<BookAppointment />} />
-            
+
+            {/* Doctor Details - Public route */}
+            <Route path="/doctor/:id" element={<DoctorDetails />} />
+
             {/* Add more routes here as needed */}
           </Routes>
         </main>

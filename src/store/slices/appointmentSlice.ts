@@ -1,27 +1,54 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
 
 export interface Appointment {
   id: number;
-  doctorId: number;
-  doctorName: string;
-  doctorSpecialty: string;
-  patientName: string;
-  patientEmail: string;
-  patientPhone: string;
-  date: string;
-  time: string;
-  appointmentType: 'in_person' | 'video' | 'phone';
+  doctor_info: {
+    id: number;
+    full_name: string;
+    specialties: string[];
+    years_experience: number;
+    average_rating: string;
+    total_reviews: number;
+    accepting_new_patients: boolean;
+    video_visit_available: boolean;
+    primary_clinic: any;
+  };
+  clinic_info: {
+    id: number;
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+    phone: string;
+  };
+  appointment_date: string;
+  appointment_time: string;
+  duration_minutes: number;
+  appointment_type: 'in_person' | 'video' | 'phone';
   reason: string;
-  insurance: string;
-  status: 'scheduled' | 'completed' | 'cancelled' | 'pending';
-  reminder: boolean;
-  createdAt: string;
+  insurance_type: string;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show';
+  status_display: string;
+  is_upcoming: boolean;
+  created_at: string;
+}
+
+interface AppointmentStats {
+  total: number;
+  pending: number;
+  confirmed: number;
+  completed: number;
+  cancelled: number;
+  no_show: number;
+  upcoming: number;
 }
 
 interface AppointmentState {
   appointments: Appointment[];
   upcomingAppointments: Appointment[];
   pastAppointments: Appointment[];
+  statistics: AppointmentStats | null;
   selectedAppointment: Appointment | null;
   loading: boolean;
   error: string | null;
@@ -32,85 +59,114 @@ const initialState: AppointmentState = {
   appointments: [],
   upcomingAppointments: [],
   pastAppointments: [],
+  statistics: null,
   selectedAppointment: null,
   loading: false,
   error: null,
   bookingSuccess: false,
 };
 
-// const API_URL = 'http://127.0.0.1:8000/api/appointments';
+const API_URL = 'http://127.0.0.1:8000/api/appointments';
 
-// Async thunk for creating appointment
-export const createAppointment = createAsyncThunk<
-  Appointment,
-  Omit<Appointment, 'id' | 'status' | 'createdAt'>,
-  { rejectValue: string }
->(
-  'appointment/create',
-  async (appointmentData) => {
-    // TODO: Replace with actual API call
-    // When you implement the API call, add back try-catch:
-    // try {
-    //   const response = await axios.post(`${API_URL}/`, appointmentData);
-    //   return response.data;
-    // } catch (error) {
-    //   const axiosError = error as AxiosError;
-    //   return rejectWithValue(axiosError.message || 'Failed to book appointment');
-    // }
-    
-    // Mock response
-    const newAppointment: Appointment = {
-      ...appointmentData,
-      id: Date.now(),
-      status: 'scheduled',
-      createdAt: new Date().toISOString(),
-    };
-    return newAppointment;
-  }
-);
-
-// Async thunk for fetching appointments
+// Async thunk for fetching all appointments
 export const fetchAppointments = createAsyncThunk<
   Appointment[],
-  void,
+  string, // token
   { rejectValue: string }
 >(
   'appointment/fetchAll',
-  async () => {
-    // TODO: Replace with actual API call
-    // When you implement the API call, add back try-catch:
-    // try {
-    //   const response = await axios.get(`${API_URL}/`);
-    //   return response.data;
-    // } catch (error) {
-    //   const axiosError = error as AxiosError;
-    //   return rejectWithValue(axiosError.message || 'Failed to fetch appointments');
-    // }
-    
-    // Mock response
-    return [];
+  async (token, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${API_URL}/appointments/`, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Failed to fetch appointments:', error);
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch appointments');
+    }
+  }
+);
+
+// Async thunk for fetching upcoming appointments
+export const fetchUpcomingAppointments = createAsyncThunk<
+  Appointment[],
+  string, // token
+  { rejectValue: string }
+>(
+  'appointment/fetchUpcoming',
+  async (token, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${API_URL}/appointments/upcoming/`, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Failed to fetch upcoming appointments:', error);
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch upcoming appointments');
+    }
+  }
+);
+
+// Async thunk for fetching past appointments
+export const fetchPastAppointments = createAsyncThunk<
+  Appointment[],
+  string, // token
+  { rejectValue: string }
+>(
+  'appointment/fetchPast',
+  async (token, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${API_URL}/appointments/past/`, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Failed to fetch past appointments:', error);
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch past appointments');
+    }
+  }
+);
+
+// Async thunk for fetching appointment statistics
+export const fetchAppointmentStatistics = createAsyncThunk<
+  AppointmentStats,
+  string, // token
+  { rejectValue: string }
+>(
+  'appointment/fetchStatistics',
+  async (token, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${API_URL}/appointments/statistics/`, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Failed to fetch appointment statistics:', error);
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch statistics');
+    }
   }
 );
 
 // Async thunk for cancelling appointment
 export const cancelAppointment = createAsyncThunk<
-  number,
-  number,
+  Appointment,
+  { id: number; token: string; reason?: string },
   { rejectValue: string }
 >(
   'appointment/cancel',
-  async (appointmentId) => {
-    // TODO: Replace with actual API call
-    // When you implement the API call, add back try-catch:
-    // try {
-    //   const response = await axios.patch(`${API_URL}/${appointmentId}/cancel/`);
-    //   return response.data;
-    // } catch (error) {
-    //   const axiosError = error as AxiosError;
-    //   return rejectWithValue(axiosError.message || 'Failed to cancel appointment');
-    // }
-    
-    return appointmentId;
+  async ({ id, token, reason }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        `${API_URL}/appointments/${id}/cancel/`,
+        { reason },
+        { headers: { Authorization: `Token ${token}` } }
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('Failed to cancel appointment:', error);
+      return rejectWithValue(error.response?.data?.error || 'Failed to cancel appointment');
+    }
   }
 );
 
@@ -129,53 +185,11 @@ const appointmentSlice = createSlice({
     clearBookingSuccess: (state) => {
       state.bookingSuccess = false;
     },
-
-    updateAppointmentStatus: (state, action: PayloadAction<{ id: number; status: Appointment['status'] }>) => {
-      const appointment = state.appointments.find(apt => apt.id === action.payload.id);
-      if (appointment) {
-        appointment.status = action.payload.status;
-      }
-      
-      // Update filtered lists
-      state.upcomingAppointments = state.appointments.filter(
-        apt => apt.status === 'scheduled' || apt.status === 'pending'
-      );
-      state.pastAppointments = state.appointments.filter(
-        apt => apt.status === 'completed' || apt.status === 'cancelled'
-      );
-    },
-
-    addLocalAppointment: (state, action: PayloadAction<Appointment>) => {
-      state.appointments.push(action.payload);
-      state.upcomingAppointments = state.appointments.filter(
-        apt => apt.status === 'scheduled' || apt.status === 'pending'
-      );
-    },
   },
 
   extraReducers: (builder) => {
     builder
-      // Create Appointment
-      .addCase(createAppointment.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-        state.bookingSuccess = false;
-      })
-      .addCase(createAppointment.fulfilled, (state, action) => {
-        state.loading = false;
-        state.appointments.push(action.payload);
-        state.upcomingAppointments = state.appointments.filter(
-          (apt) => apt.status === 'scheduled' || apt.status === 'pending'
-        );
-        state.bookingSuccess = true;
-      })
-      .addCase(createAppointment.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload || 'Failed to book appointment';
-        state.bookingSuccess = false;
-      })
-
-      // Fetch Appointments
+      // Fetch All Appointments
       .addCase(fetchAppointments.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -183,16 +197,52 @@ const appointmentSlice = createSlice({
       .addCase(fetchAppointments.fulfilled, (state, action) => {
         state.loading = false;
         state.appointments = action.payload;
-        state.upcomingAppointments = action.payload.filter(
-          (apt) => apt.status === 'scheduled' || apt.status === 'pending'
-        );
-        state.pastAppointments = action.payload.filter(
-          (apt) => apt.status === 'completed' || apt.status === 'cancelled'
-        );
       })
       .addCase(fetchAppointments.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Failed to fetch appointments';
+      })
+
+      // Fetch Upcoming Appointments
+      .addCase(fetchUpcomingAppointments.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchUpcomingAppointments.fulfilled, (state, action) => {
+        state.loading = false;
+        state.upcomingAppointments = action.payload;
+      })
+      .addCase(fetchUpcomingAppointments.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to fetch upcoming appointments';
+      })
+
+      // Fetch Past Appointments
+      .addCase(fetchPastAppointments.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchPastAppointments.fulfilled, (state, action) => {
+        state.loading = false;
+        state.pastAppointments = action.payload;
+      })
+      .addCase(fetchPastAppointments.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to fetch past appointments';
+      })
+
+      // Fetch Statistics
+      .addCase(fetchAppointmentStatistics.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAppointmentStatistics.fulfilled, (state, action) => {
+        state.loading = false;
+        state.statistics = action.payload;
+      })
+      .addCase(fetchAppointmentStatistics.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to fetch statistics';
       })
 
       // Cancel Appointment
@@ -202,17 +252,17 @@ const appointmentSlice = createSlice({
       })
       .addCase(cancelAppointment.fulfilled, (state, action) => {
         state.loading = false;
-        const appointment = state.appointments.find(apt => apt.id === action.payload);
-        if (appointment) {
-          appointment.status = 'cancelled';
+        // Update the appointment in the list
+        const index = state.appointments.findIndex(apt => apt.id === action.payload.id);
+        if (index !== -1) {
+          state.appointments[index] = action.payload;
         }
-        
-        state.upcomingAppointments = state.appointments.filter(
-          (apt) => apt.status === 'scheduled' || apt.status === 'pending'
+        // Remove from upcoming appointments
+        state.upcomingAppointments = state.upcomingAppointments.filter(
+          apt => apt.id !== action.payload.id
         );
-        state.pastAppointments = state.appointments.filter(
-          (apt) => apt.status === 'completed' || apt.status === 'cancelled'
-        );
+        // Add to past appointments
+        state.pastAppointments.unshift(action.payload);
       })
       .addCase(cancelAppointment.rejected, (state, action) => {
         state.loading = false;
@@ -225,8 +275,6 @@ export const {
   setSelectedAppointment,
   clearAppointmentError,
   clearBookingSuccess,
-  updateAppointmentStatus,
-  addLocalAppointment,
 } = appointmentSlice.actions;
 
 export default appointmentSlice.reducer;

@@ -16,6 +16,9 @@ import {
   TrendingUp,
   CheckCircle,
   FileText,
+  Filter,
+  X,
+  SlidersHorizontal,
 } from 'lucide-react';
 import {
   setSymptomInput,
@@ -25,6 +28,13 @@ import {
 import {
   setSearchLocation,
   filterDoctorsBySpecialty,
+  setFilterAcceptingNew,
+  setFilterVideoVisit,
+  setFilterMinRating,
+  sortDoctors,
+  resetDoctorFilters,
+  fetchDoctors,
+  fetchCities,
 } from '../store/slices/doctorSlice';
 
 const HomePage: React.FC = () => {
@@ -47,9 +57,75 @@ const HomePage: React.FC = () => {
     allDoctors,
     filteredDoctors,
     searchLocation,
+    loading: doctorsLoading,
+    error: doctorsError,
+    availableCities,
   } = useAppSelector((state) => state.doctor);
 
   const userName = firstName && lastName ? `${firstName} ${lastName}` : firstName || 'there';
+
+  // Local state for suggestions dropdown
+  const [showSuggestions, setShowSuggestions] = React.useState(false);
+  const [filteredCities, setFilteredCities] = React.useState<string[]>([]);
+
+  // Local state for filters
+  const [showFilters, setShowFilters] = React.useState(false);
+  const [selectedSpecialty, setSelectedSpecialty] = React.useState<string>('');
+  const [selectedRating, setSelectedRating] = React.useState<number>(0);
+  const [acceptingNewOnly, setAcceptingNewOnly] = React.useState(false);
+  const [videoVisitOnly, setVideoVisitOnly] = React.useState(false);
+  const [selectedSort, setSelectedSort] = React.useState<string>('');
+
+  // Fetch doctors and cities from backend on component mount
+  useEffect(() => {
+    dispatch(fetchDoctors(undefined)); // Fetch all doctors initially
+    dispatch(fetchCities()); // Fetch available cities for suggestions
+  }, [dispatch]);
+
+  // Filter cities based on search input
+  useEffect(() => {
+    if (searchLocation.trim()) {
+      const filtered = availableCities.filter(city =>
+        city.toLowerCase().includes(searchLocation.toLowerCase())
+      );
+      setFilteredCities(filtered);
+    } else {
+      setFilteredCities(availableCities);
+    }
+  }, [searchLocation, availableCities]);
+
+  const handleLocationSearch = () => {
+    if (searchLocation.trim()) {
+      dispatch(fetchDoctors(searchLocation));
+    } else {
+      dispatch(fetchDoctors(undefined)); // Fetch all if location is empty
+    }
+    setShowSuggestions(false);
+  };
+
+  const handleCitySelect = (city: string) => {
+    dispatch(setSearchLocation(city));
+    dispatch(fetchDoctors(city));
+    setShowSuggestions(false);
+  };
+
+  // Helper function to get doctor initials for avatar fallback
+  const getInitials = (name: string) => {
+    const names = name.replace('Dr. ', '').split(' ');
+    if (names.length >= 2) {
+      return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  // Helper function to get profile picture URL
+  const getProfilePictureUrl = (profilePicture: string | null | undefined) => {
+    if (!profilePicture) return null;
+    // If it's already a full URL, return it
+    if (profilePicture.startsWith('http')) return profilePicture;
+    // Otherwise, prepend the backend URL
+    return `http://127.0.0.1:8000${profilePicture}`;
+  };
 
   const suggestionChips: string[] = [
     'Headache and fever for 2 days',
@@ -95,21 +171,56 @@ const HomePage: React.FC = () => {
     dispatch(setSearchLocation(location));
   };
 
+  // Filter handlers
+  const handleSpecialtyChange = (specialty: string) => {
+    setSelectedSpecialty(specialty);
+    dispatch(filterDoctorsBySpecialty(specialty || null));
+  };
+
+  const handleRatingChange = (rating: number) => {
+    setSelectedRating(rating);
+    dispatch(setFilterMinRating(rating));
+  };
+
+  const handleAcceptingNewChange = (value: boolean) => {
+    setAcceptingNewOnly(value);
+    dispatch(setFilterAcceptingNew(value));
+  };
+
+  const handleVideoVisitChange = (value: boolean) => {
+    setVideoVisitOnly(value);
+    dispatch(setFilterVideoVisit(value));
+  };
+
+  const handleSortChange = (sort: string) => {
+    setSelectedSort(sort);
+    dispatch(sortDoctors(sort ? (sort as 'rating' | 'distance' | 'experience') : null));
+  };
+
+  const handleClearFilters = () => {
+    setSelectedSpecialty('');
+    setSelectedRating(0);
+    setAcceptingNewOnly(false);
+    setVideoVisitOnly(false);
+    setSelectedSort('');
+    dispatch(resetDoctorFilters());
+  };
+
   const getUrgencyColor = (urgency: string) => {
     switch (urgency.toLowerCase()) {
       case 'emergency':
-        return 'bg-red-50 border-red-500 text-red-700';
+        return 'bg-red-50 border-red-400 text-red-800';
       case 'urgent_care':
       case 'urgent care':
-        return 'bg-orange-50 border-orange-500 text-orange-700';
+        return 'bg-orange-50 border-orange-400 text-orange-800';
       case 'doctor_visit':
       case 'schedule appointment':
-        return 'bg-yellow-50 border-yellow-500 text-yellow-700';
+        return 'bg-blue-50 border-blue-400 text-blue-800';
       case 'home_care':
       case 'self-care':
-        return 'bg-green-50 border-green-500 text-green-700';
+        return 'bg-green-50 border-green-400 text-green-800';
       default:
-        return 'bg-gray-50 border-gray-500 text-gray-700';
+        return 'bg-gray-50 border-gray-400 text-gray-800';
     }
   };
 
@@ -147,18 +258,18 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Main Content - Two Column Layout */}
       <div className="max-w-7xl mx-auto px-4 py-4 sm:py-8 lg:py-12">
         <div className="grid lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8">
           {/* Left Column - Sticky Symptom Checker */}
           <div className="lg:col-span-2">
             <div className="lg:sticky lg:top-4">
-              <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
                 <div className="text-center mb-4 sm:mb-6">
-                  <div className="inline-flex items-center bg-teal-100 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full mb-3 sm:mb-4">
-                    <Activity className="w-4 sm:w-5 h-4 sm:h-5 text-teal-600 mr-2" />
-                    <span className="font-semibold text-teal-700 text-sm sm:text-base">AI Symptom Checker</span>
+                  <div className="inline-flex items-center bg-blue-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg mb-3 sm:mb-4 border border-blue-200">
+                    <Activity className="w-4 sm:w-5 h-4 sm:h-5 text-blue-600 mr-2" />
+                    <span className="font-semibold text-blue-700 text-sm sm:text-base">AI Symptom Checker</span>
                   </div>
                   <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
                     {isAuthenticated ? `Hello, ${userName}!` : 'How are you feeling today?'}
@@ -169,10 +280,10 @@ const HomePage: React.FC = () => {
                 </div>
 
                 {/* Disclaimer */}
-                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded-lg mb-4">
+                <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg mb-4">
                   <div className="flex items-start">
-                    <AlertCircle className="w-4 h-4 text-yellow-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <div className="text-xs text-yellow-800">
+                    <AlertCircle className="w-4 h-4 text-amber-600 mr-2 mt-0.5 flex-shrink-0" />
+                    <div className="text-xs text-amber-900">
                       <strong>Medical Disclaimer:</strong> This AI tool provides general guidance only. If experiencing a medical emergency, call 911 immediately.
                     </div>
                   </div>
@@ -180,7 +291,7 @@ const HomePage: React.FC = () => {
 
                 {/* Error Message */}
                 {symptomError && (
-                  <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded-lg mb-4">
+                  <div className="bg-red-50 border border-red-200 p-3 rounded-lg mb-4">
                     <div className="flex items-start">
                       <AlertCircle className="w-4 h-4 text-red-600 mr-2 mt-0.5 flex-shrink-0" />
                       <div className="text-xs text-red-800">
@@ -206,7 +317,7 @@ const HomePage: React.FC = () => {
                     onChange={(e) => dispatch(setSymptomInput(e.target.value))}
                     placeholder="Be as detailed as possible. Example: 'I've had a persistent headache and fever for 2 days...'"
                     rows={5}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm resize-none"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm resize-none"
                   />
                   <p className="text-xs text-gray-500 mt-2">
                     Include: symptoms, duration, severity
@@ -216,7 +327,7 @@ const HomePage: React.FC = () => {
                 <button
                   onClick={handleAnalyzeSymptoms}
                   disabled={!symptomInput.trim() || isAnalyzing}
-                  className="w-full bg-gradient-to-r from-teal-500 to-cyan-600 text-white py-3 sm:py-3.5 rounded-lg sm:rounded-xl font-semibold hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base"
+                  className="w-full bg-blue-600 text-white py-3 sm:py-3.5 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 flex items-center justify-center text-sm sm:text-base shadow-sm"
                 >
                   {isAnalyzing ? (
                     <>
@@ -242,7 +353,7 @@ const HomePage: React.FC = () => {
                       <button
                         key={index}
                         onClick={() => handleSuggestionClick(suggestion)}
-                        className="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-teal-50 text-teal-700 rounded-full text-xs font-medium hover:bg-teal-100 transition border border-teal-200"
+                        className="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-200 transition border border-gray-300"
                       >
                         {suggestion}
                       </button>
@@ -258,118 +369,166 @@ const HomePage: React.FC = () => {
             {/* Analysis Results */}
             {analysisResult ? (
               <div id="analysis-results" className="space-y-4 sm:space-y-6">
-                <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6">
-                  <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4 flex items-center">
-                    <TrendingUp className="w-5 sm:w-6 h-5 sm:h-6 mr-2 text-teal-600" />
-                    AI Analysis Results
-                  </h3>
-
-                  {/* Urgency Banner */}
-                  <div className={`p-4 sm:p-5 rounded-lg sm:rounded-xl border-2 mb-3 sm:mb-4 ${getUrgencyColor(analysisResult.urgency)}`}>
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center mb-2">
-                          <span className="text-xl sm:text-2xl mr-2">{getUrgencyIcon(analysisResult.urgency)}</span>
-                          <div>
-                            <h4 className="font-bold text-xs sm:text-sm">Urgency Level</h4>
-                            <p className="text-lg sm:text-xl font-bold mt-1">
-                              {formatUrgencyText(analysisResult.urgency)}
-                            </p>
-                          </div>
-                        </div>
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                  {/* Header Section */}
+                  <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-4 sm:px-6 py-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg sm:text-xl font-bold text-white mb-1 flex items-center">
+                          <FileText className="w-5 h-5 mr-2" />
+                          Clinical Assessment Report
+                        </h3>
+                        <p className="text-blue-100 text-xs sm:text-sm">AI-Powered Symptom Analysis</p>
                       </div>
                       {analysisResult.confidence && (
-                        <div className="ml-2">
-                          <div className="text-xs font-medium">Confidence</div>
-                          <div className="text-lg font-bold">{Math.round(analysisResult.confidence * 100)}%</div>
+                        <div className="text-right">
+                          <div className="text-xs text-blue-100 mb-1">Analysis Confidence</div>
+                          <div className="text-2xl font-bold text-white">{Math.round(analysisResult.confidence * 100)}%</div>
                         </div>
                       )}
                     </div>
+                  </div>
 
-                    <div className="bg-white bg-opacity-50 rounded-lg p-3 mb-3">
-                      <h5 className="font-semibold text-gray-900 mb-1 text-xs sm:text-sm">Condition Assessment:</h5>
-                      <p className="text-base sm:text-lg font-bold text-gray-900 mb-1">{analysisResult.condition}</p>
-                      <p className="text-gray-700 text-xs sm:text-sm">{analysisResult.description}</p>
+                  <div className="p-4 sm:p-6">
+                    {/* Urgency Alert Box */}
+                    <div className={`rounded-lg border-2 mb-6 overflow-hidden ${getUrgencyColor(analysisResult.urgency)}`}>
+                      <div className="bg-white bg-opacity-40 px-4 py-2 border-b-2 border-current border-opacity-30">
+                        <div className="flex items-center">
+                          <span className="text-2xl mr-2">{getUrgencyIcon(analysisResult.urgency)}</span>
+                          <div>
+                            <div className="text-xs font-semibold uppercase tracking-wide opacity-75">Care Priority Level</div>
+                            <div className="text-lg sm:text-xl font-bold">
+                              {formatUrgencyText(analysisResult.urgency)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="px-4 py-3 bg-white bg-opacity-60">
+                        <div className="mb-3">
+                          <div className="text-xs font-semibold text-gray-700 mb-1 uppercase tracking-wide">Primary Assessment</div>
+                          <div className="text-base sm:text-lg font-bold text-gray-900 mb-1">{analysisResult.condition}</div>
+                          <p className="text-sm text-gray-700 leading-relaxed">{analysisResult.description}</p>
+                        </div>
+
+                        {analysisResult.urgency.toLowerCase() === 'emergency' && (
+                          <a href="tel:911" className="block w-full bg-red-600 text-white py-3 rounded-lg font-bold text-center hover:bg-red-700 transition text-sm sm:text-base shadow-lg mt-3">
+                            🚨 CALL 911 IMMEDIATELY - Emergency Services
+                          </a>
+                        )}
+                      </div>
                     </div>
 
-                    {analysisResult.urgency.toLowerCase() === 'emergency' && (
-                      <a href="tel:911" className="block w-full bg-red-600 text-white py-3 rounded-lg font-bold text-center hover:bg-red-700 transition text-sm sm:text-base">
-                        🚨 CALL 911 NOW - Emergency Services
-                      </a>
+                    {/* Clinical Details Section */}
+                    <div className="space-y-4 mb-6">
+                      <div>
+                        <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3 pb-2 border-b-2 border-gray-200">
+                          Clinical Recommendations
+                        </h4>
+                        
+                        <div className="grid grid-cols-1 gap-4">
+                          {/* Recommendation Card */}
+                          <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                            <div className="flex items-start">
+                              <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                                <CheckCircle className="w-5 h-5 text-blue-600" />
+                              </div>
+                              <div className="flex-1">
+                                <h5 className="font-semibold text-gray-900 text-sm mb-1">Recommended Action</h5>
+                                <p className="text-gray-700 text-sm leading-relaxed">{analysisResult.recommendation}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* When to Seek Care Card */}
+                          <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                            <div className="flex items-start">
+                              <div className="flex-shrink-0 w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center mr-3">
+                                <Clock className="w-5 h-5 text-amber-600" />
+                              </div>
+                              <div className="flex-1">
+                                <h5 className="font-semibold text-gray-900 text-sm mb-1">Timing Guidelines</h5>
+                                <p className="text-gray-700 text-sm leading-relaxed">{analysisResult.whenToSeek}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Possible Causes Section */}
+                      <div>
+                        <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3 pb-2 border-b-2 border-gray-200">
+                          Differential Diagnosis
+                        </h4>
+                        <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                          <div className="flex items-start">
+                            <div className="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                              <AlertCircle className="w-5 h-5 text-purple-600" />
+                            </div>
+                            <div className="flex-1">
+                              <h5 className="font-semibold text-gray-900 text-sm mb-2">Possible Underlying Conditions</h5>
+                              <ul className="space-y-1.5">
+                                {analysisResult.possibleCauses.map((cause, index) => (
+                                  <li key={index} className="text-gray-700 text-sm flex items-start">
+                                    <span className="inline-block w-1.5 h-1.5 bg-purple-400 rounded-full mt-1.5 mr-2 flex-shrink-0"></span>
+                                    <span>{cause}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Reported Symptoms */}
+                      <div>
+                        <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3 pb-2 border-b-2 border-gray-200">
+                          Patient-Reported Symptoms
+                        </h4>
+                        <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                          <div className="flex items-start">
+                            <div className="flex-shrink-0 w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center mr-3">
+                              <FileText className="w-5 h-5 text-gray-600" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-gray-700 text-sm leading-relaxed italic">"{analysisResult.symptoms}"</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Recommended Specialties */}
+                    {analysisResult.recommendedSpecialties && analysisResult.recommendedSpecialties.length > 0 && (
+                      <div className="border-t-2 border-gray-200 pt-4">
+                        <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3">
+                          Recommended Medical Specialists
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {analysisResult.recommendedSpecialties.map((specialty, index) => (
+                            <span key={index} className="inline-flex items-center bg-white border-2 border-blue-200 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-semibold">
+                              <Stethoscope className="w-3.5 h-3.5 mr-1.5" />
+                              {specialty}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                     )}
                   </div>
 
-                  {/* Details Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
-                    {/* Recommendation */}
-                    <div className="bg-teal-50 border border-teal-200 rounded-lg sm:rounded-xl p-3 sm:p-4">
-                      <h5 className="font-semibold text-gray-900 mb-2 flex items-center text-xs sm:text-sm">
-                        <CheckCircle className="w-4 h-4 mr-2 text-teal-600" />
-                        Recommendation
-                      </h5>
-                      <p className="text-gray-700 text-xs sm:text-sm">{analysisResult.recommendation}</p>
-                    </div>
-
-                    {/* When to Seek Care */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg sm:rounded-xl p-3 sm:p-4">
-                      <h5 className="font-semibold text-gray-900 mb-2 flex items-center text-xs sm:text-sm">
-                        <Clock className="w-4 h-4 mr-2 text-blue-600" />
-                        When to Seek Care
-                      </h5>
-                      <p className="text-gray-700 text-xs sm:text-sm">{analysisResult.whenToSeek}</p>
-                    </div>
-
-                    {/* Possible Causes */}
-                    <div className="bg-purple-50 border border-purple-200 rounded-lg sm:rounded-xl p-3 sm:p-4">
-                      <h5 className="font-semibold text-gray-900 mb-2 flex items-center text-xs sm:text-sm">
-                        <AlertCircle className="w-4 h-4 mr-2 text-purple-600" />
-                        Possible Causes
-                      </h5>
-                      <ul className="list-disc list-inside text-gray-700 space-y-1 text-xs sm:text-sm">
-                        {analysisResult.possibleCauses.map((cause, index) => (
-                          <li key={index}>{cause}</li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* Your Symptoms */}
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl p-3 sm:p-4">
-                      <h5 className="font-semibold text-gray-900 mb-2 flex items-center text-xs sm:text-sm">
-                        <FileText className="w-4 h-4 mr-2 text-gray-600" />
-                        Your Symptoms
-                      </h5>
-                      <p className="text-gray-700 italic text-xs sm:text-sm line-clamp-3">"{analysisResult.symptoms}"</p>
-                    </div>
-                  </div>
-
-                  {/* Recommended Specialties */}
-                  {analysisResult.recommendedSpecialties && analysisResult.recommendedSpecialties.length > 0 && (
-                    <div className="bg-indigo-50 border border-indigo-200 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-4">
-                      <h5 className="font-semibold text-gray-900 mb-2 text-xs sm:text-sm">
-                        Recommended Medical Specialties:
-                      </h5>
-                      <div className="flex flex-wrap gap-2">
-                        {analysisResult.recommendedSpecialties.map((specialty, index) => (
-                          <span key={index} className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-medium">
-                            {specialty}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
                   {/* Recommended Doctors */}
                   {analysisResult.urgency.toLowerCase() !== 'emergency' && analysisResult.urgency.toLowerCase() !== 'home_care' && analysisResult.urgency.toLowerCase() !== 'self-care' && (
+                    <div className="p-4 sm:p-6 pt-0">
                     <div className="mt-4 sm:mt-6">
-                      <div className="bg-gradient-to-r from-teal-500 to-cyan-600 rounded-lg sm:rounded-xl p-4 mb-4 text-white">
+                      <div className="bg-blue-600 rounded-lg p-4 mb-4 text-white shadow-sm">
                         <div className="flex items-center justify-between">
                           <div>
                             <h4 className="text-base sm:text-lg font-bold mb-1">Recommended Doctors Near You</h4>
-                            <p className="text-teal-100 text-xs sm:text-sm">
+                            <p className="text-blue-100 text-xs sm:text-sm">
                               Specialty: {analysisResult.providerType}
                             </p>
                           </div>
-                          <Stethoscope className="w-8 sm:w-10 h-8 sm:h-10 opacity-50" />
+                          <Stethoscope className="w-8 sm:w-10 h-8 sm:h-10 opacity-30" />
                         </div>
                       </div>
 
@@ -377,16 +536,39 @@ const HomePage: React.FC = () => {
                         {(filteredDoctors.length > 0 ? filteredDoctors : allDoctors).slice(0, 4).map((doctor) => (
                           <div
                             key={doctor.id}
-                            className="bg-white border-2 border-teal-200 rounded-lg sm:rounded-xl p-3 sm:p-4 hover:border-teal-400 hover:shadow-lg transition"
+                            className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 hover:border-blue-300 hover:shadow-md transition"
                           >
                             <div className="flex gap-3 sm:gap-4">
-                              <div className="w-12 sm:w-14 h-12 sm:h-14 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
-                                <User className="w-6 sm:w-7 h-6 sm:h-7 text-white" />
+                              {/* Doctor Avatar */}
+                              <div className="w-12 sm:w-14 h-12 sm:h-14 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden border-2 border-blue-200">
+                                {doctor.profilePicture && getProfilePictureUrl(doctor.profilePicture) ? (
+                                  <img
+                                    src={getProfilePictureUrl(doctor.profilePicture)!}
+                                    alt={doctor.name}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                      if (e.currentTarget.nextSibling) {
+                                        (e.currentTarget.nextSibling as HTMLElement).style.display = 'flex';
+                                      }
+                                    }}
+                                  />
+                                ) : null}
+                                <div
+                                  className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center"
+                                  style={{
+                                    display: doctor.profilePicture && getProfilePictureUrl(doctor.profilePicture) ? 'none' : 'flex'
+                                  }}
+                                >
+                                  <span className="text-white font-bold text-base sm:text-lg">
+                                    {getInitials(doctor.name)}
+                                  </span>
+                                </div>
                               </div>
 
                               <div className="flex-1 min-w-0">
                                 <h5 className="font-bold text-sm sm:text-base text-gray-900 mb-0.5">{doctor.name}</h5>
-                                <p className="text-teal-600 font-medium text-xs sm:text-sm mb-2">{doctor.specialty}</p>
+                                <p className="text-blue-600 font-medium text-xs sm:text-sm mb-2">{doctor.specialty}</p>
 
                                 <div className="flex items-center gap-2 mb-2 text-xs flex-wrap">
                                   <div className="flex items-center">
@@ -401,7 +583,7 @@ const HomePage: React.FC = () => {
                                 <div className="space-y-1 mb-2 sm:mb-3 text-xs">
                                   <div className="flex items-center text-gray-600">
                                     <Clock className="w-3 h-3 mr-1.5 flex-shrink-0" />
-                                    <span className="font-medium text-teal-600">{doctor.availability}</span>
+                                    <span className="font-medium text-blue-600">{doctor.availability}</span>
                                   </div>
                                   <div className="flex items-center text-gray-600">
                                     <MapPin className="w-3 h-3 mr-1.5 flex-shrink-0" />
@@ -409,22 +591,31 @@ const HomePage: React.FC = () => {
                                   </div>
                                 </div>
 
-                                <button
-                                  onClick={() =>
-                                    navigate('/book-appointment', {
-                                      state: { doctor, urgencyResult: analysisResult },
-                                    })
-                                  }
-                                  className="w-full bg-gradient-to-r from-teal-500 to-cyan-600 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold hover:shadow-lg transition flex items-center justify-center"
-                                >
-                                  Book Appointment
-                                  <ChevronRight className="w-3.5 sm:w-4 h-3.5 sm:h-4 ml-1" />
-                                </button>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => navigate(`/doctor/${doctor.id}`)}
+                                    className="flex-1 bg-white border-2 border-blue-600 text-blue-600 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold hover:bg-blue-50 transition"
+                                  >
+                                    View Details
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      navigate('/book-appointment', {
+                                        state: { doctor, urgencyResult: analysisResult },
+                                      })
+                                    }
+                                    className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold hover:bg-blue-700 transition flex items-center justify-center shadow-sm"
+                                  >
+                                    Book Now
+                                    <ChevronRight className="w-3.5 sm:w-4 h-3.5 sm:h-4 ml-1" />
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           </div>
                         ))}
                       </div>
+                    </div>
                     </div>
                   )}
                 </div>
@@ -432,23 +623,170 @@ const HomePage: React.FC = () => {
             ) : null}
 
             {/* All Doctors Section - Always Visible */}
-            <div className={`bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 ${analysisResult ? 'mt-4 sm:mt-6' : ''}`}>
+            <div className={`bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 ${analysisResult ? 'mt-4 sm:mt-6' : ''}`}>
               <div className="text-center mb-4 sm:mb-6">
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
                   All Healthcare Providers
                 </h2>
+
+                {/* Filter Section */}
+                <div className="mb-4 sm:mb-6">
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-100 transition text-sm font-medium"
+                  >
+                    <SlidersHorizontal className="w-4 h-4" />
+                    {showFilters ? 'Hide Filters' : 'Show Filters'}
+                    {(selectedSpecialty || selectedRating > 0 || acceptingNewOnly || videoVisitOnly || selectedSort) && (
+                      <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
+                        {[selectedSpecialty, selectedRating > 0, acceptingNewOnly, videoVisitOnly, selectedSort].filter(Boolean).length}
+                      </span>
+                    )}
+                  </button>
+
+                  {showFilters && (
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                        {/* Specialty Filter */}
+                        <div>
+                          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+                            Specialty
+                          </label>
+                          <select
+                            value={selectedSpecialty}
+                            onChange={(e) => handleSpecialtyChange(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                          >
+                            <option value="">All Specialties</option>
+                            <option value="Family Medicine">Family Medicine</option>
+                            <option value="Internal Medicine">Internal Medicine</option>
+                            <option value="Pediatrics">Pediatrics</option>
+                            <option value="Cardiology">Cardiology</option>
+                            <option value="Dermatology">Dermatology</option>
+                            <option value="Orthopedics">Orthopedics</option>
+                            <option value="Neurology">Neurology</option>
+                            <option value="Psychiatry">Psychiatry</option>
+                            <option value="Ophthalmology">Ophthalmology</option>
+                            <option value="ENT">ENT</option>
+                          </select>
+                        </div>
+
+                        {/* Rating Filter */}
+                        <div>
+                          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+                            Minimum Rating
+                          </label>
+                          <select
+                            value={selectedRating}
+                            onChange={(e) => handleRatingChange(Number(e.target.value))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                          >
+                            <option value="0">Any Rating</option>
+                            <option value="3">3+ Stars</option>
+                            <option value="4">4+ Stars</option>
+                            <option value="4.5">4.5+ Stars</option>
+                          </select>
+                        </div>
+
+                        {/* Sort By */}
+                        <div>
+                          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+                            Sort By
+                          </label>
+                          <select
+                            value={selectedSort}
+                            onChange={(e) => handleSortChange(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                          >
+                            <option value="">Default</option>
+                            <option value="rating">Highest Rated</option>
+                            <option value="experience">Most Experienced</option>
+                            <option value="distance">Nearest</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Checkbox Filters */}
+                      <div className="flex flex-wrap gap-3 sm:gap-4 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={acceptingNewOnly}
+                            onChange={(e) => handleAcceptingNewChange(e.target.checked)}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <span className="text-xs sm:text-sm text-gray-700">Accepting New Patients</span>
+                        </label>
+
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={videoVisitOnly}
+                            onChange={(e) => handleVideoVisitChange(e.target.checked)}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <span className="text-xs sm:text-sm text-gray-700">Video Visit Available</span>
+                        </label>
+
+                        {(selectedSpecialty || selectedRating > 0 || acceptingNewOnly || videoVisitOnly || selectedSort) && (
+                          <button
+                            onClick={handleClearFilters}
+                            className="ml-auto flex items-center gap-1 text-xs sm:text-sm text-red-600 hover:text-red-700 font-medium"
+                          >
+                            <X className="w-4 h-4" />
+                            Clear All Filters
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                  <div className="flex items-center gap-2 flex-1 sm:flex-initial">
-                    <MapPin className="w-4 sm:w-5 h-4 sm:h-5 text-teal-600" />
-                    <input
-                      type="text"
-                      value={searchLocation}
-                      onChange={(e) => handleSearchLocationChange(e.target.value)}
-                      className="flex-1 sm:flex-initial px-3 sm:px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-xs sm:text-sm"
-                      placeholder="Enter location"
-                    />
+                  <div className="flex items-center gap-2 flex-1 sm:flex-initial relative">
+                    <MapPin className="w-4 sm:w-5 h-4 sm:h-5 text-gray-600" />
+                    <div className="relative flex-1 sm:flex-initial">
+                      <input
+                        type="text"
+                        value={searchLocation}
+                        onChange={(e) => {
+                          handleSearchLocationChange(e.target.value);
+                          setShowSuggestions(true);
+                        }}
+                        onFocus={() => setShowSuggestions(true)}
+                        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleLocationSearch();
+                          } else if (e.key === 'Escape') {
+                            setShowSuggestions(false);
+                          }
+                        }}
+                        className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
+                        placeholder="Enter city or state"
+                      />
+
+                      {/* Suggestions Dropdown */}
+                      {showSuggestions && filteredCities.length > 0 && (
+                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                          {filteredCities.map((city, index) => (
+                            <button
+                              key={index}
+                              onClick={() => handleCitySelect(city)}
+                              className="w-full text-left px-4 py-2 hover:bg-blue-50 text-sm text-gray-700 hover:text-blue-700 transition flex items-center gap-2"
+                            >
+                              <MapPin className="w-3 h-3 text-gray-400" />
+                              {city}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <button className="bg-teal-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-teal-700 transition flex items-center justify-center text-xs sm:text-sm">
+                  <button
+                    onClick={handleLocationSearch}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center text-xs sm:text-sm shadow-sm"
+                  >
                     <Search className="w-4 h-4 mr-1 sm:mr-2" />
                     Search
                   </button>
@@ -458,26 +796,95 @@ const HomePage: React.FC = () => {
                 </p>
               </div>
 
+              {/* Loading State */}
+              {doctorsLoading && (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <svg className="animate-spin h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <p className="text-gray-600 text-sm">Loading doctors from backend...</p>
+                </div>
+              )}
+
+              {/* Error State */}
+              {doctorsError && !doctorsLoading && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                  <div className="flex items-start">
+                    <AlertCircle className="w-5 h-5 text-red-600 mr-3 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-red-800 mb-1">Failed to load doctors</h3>
+                      <p className="text-xs text-red-700">{doctorsError}</p>
+                      <button
+                        onClick={() => dispatch(fetchDoctors())}
+                        className="mt-3 bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-red-700 transition"
+                      >
+                        Try Again
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Empty State */}
+              {!doctorsLoading && !doctorsError && allDoctors.length === 0 && (
+                <div className="text-center py-12">
+                  <User className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-600 text-sm">No doctors available at the moment.</p>
+                  <button
+                    onClick={() => dispatch(fetchDoctors())}
+                    className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition"
+                  >
+                    Refresh
+                  </button>
+                </div>
+              )}
+
               {/* Doctor Cards */}
+              {!doctorsLoading && allDoctors.length > 0 && (
               <div className="space-y-3 sm:space-y-4">
                 {allDoctors.map((doctor) => (
                   <div
                     key={doctor.id}
-                    className="bg-white border-2 border-gray-200 rounded-lg sm:rounded-xl p-3 sm:p-4 hover:border-teal-300 hover:shadow-lg transition"
+                    className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 hover:border-gray-300 hover:shadow-md transition"
                   >
                     <div className="flex gap-3 sm:gap-4">
-                      <div className="w-14 sm:w-16 h-14 sm:h-16 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
-                        <User className="w-7 sm:w-8 h-7 sm:h-8 text-white" />
+                      {/* Doctor Avatar */}
+                      <div className="w-14 sm:w-16 h-14 sm:h-16 rounded-lg flex items-center justify-center flex-shrink-0 border border-gray-200 overflow-hidden">
+                        {doctor.profilePicture && getProfilePictureUrl(doctor.profilePicture) ? (
+                          <img
+                            src={getProfilePictureUrl(doctor.profilePicture)!}
+                            alt={doctor.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              // Fallback to initials if image fails to load
+                              e.currentTarget.style.display = 'none';
+                              if (e.currentTarget.nextSibling) {
+                                (e.currentTarget.nextSibling as HTMLElement).style.display = 'flex';
+                              }
+                            }}
+                          />
+                        ) : null}
+                        <div
+                          className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center"
+                          style={{
+                            display: doctor.profilePicture && getProfilePictureUrl(doctor.profilePicture) ? 'none' : 'flex'
+                          }}
+                        >
+                          <span className="text-white font-bold text-lg sm:text-xl">
+                            {getInitials(doctor.name)}
+                          </span>
+                        </div>
                       </div>
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex-1 min-w-0 pr-2">
                             <h4 className="font-bold text-base sm:text-lg text-gray-900 truncate">{doctor.name}</h4>
-                            <p className="text-teal-600 font-medium text-xs sm:text-sm">{doctor.specialty}</p>
+                            <p className="text-gray-600 font-medium text-xs sm:text-sm">{doctor.specialty}</p>
                           </div>
                           {doctor.acceptingNew && (
-                            <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0">
+                            <span className="bg-green-50 text-green-700 px-2 py-1 rounded-lg text-xs font-semibold whitespace-nowrap flex-shrink-0 border border-green-200">
                               ✓ New
                             </span>
                           )}
@@ -507,34 +914,43 @@ const HomePage: React.FC = () => {
                             <MapPin className="w-3 sm:w-3.5 h-3 sm:h-3.5 mr-1.5 sm:mr-2 flex-shrink-0" />
                             <span className="truncate">{doctor.clinic}</span>
                           </div>
-                          <div className="flex items-center font-medium text-teal-600">
+                          <div className="flex items-center font-medium text-blue-600">
                             <Clock className="w-3 sm:w-3.5 h-3 sm:h-3.5 mr-1.5 sm:mr-2 flex-shrink-0" />
                             {doctor.availability}
                           </div>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-0 pt-2 sm:pt-3 border-t border-gray-100">
-                          <div className="text-xs">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-2 sm:pt-3 border-t border-gray-100">
+                          <div className="text-xs hidden sm:block">
                             <span className="text-gray-500">From </span>
-                            <span className="font-semibold text-green-700">{doctor.cost}</span>
+                            <span className="font-semibold text-gray-900">{doctor.cost}</span>
                           </div>
-                          <button
-                            onClick={() =>
-                              navigate('/book-appointment', {
-                                state: { doctor, urgencyResult: analysisResult },
-                              })
-                            }
-                            className="bg-gradient-to-r from-teal-500 to-cyan-600 text-white px-4 sm:px-5 py-2 rounded-lg font-semibold hover:shadow-lg transition flex items-center justify-center text-xs sm:text-sm"
-                          >
-                            Book Now
-                            <ChevronRight className="w-3.5 sm:w-4 h-3.5 sm:h-4 ml-1" />
-                          </button>
+                          <div className="flex gap-2 flex-1 sm:flex-initial">
+                            <button
+                              onClick={() => navigate(`/doctor/${doctor.id}`)}
+                              className="flex-1 sm:flex-initial bg-white border-2 border-blue-600 text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition text-xs sm:text-sm"
+                            >
+                              View Details
+                            </button>
+                            <button
+                              onClick={() =>
+                                navigate('/book-appointment', {
+                                  state: { doctor, urgencyResult: analysisResult },
+                                })
+                              }
+                              className="flex-1 sm:flex-initial bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center text-xs sm:text-sm shadow-sm"
+                            >
+                              Book Now
+                              <ChevronRight className="w-3.5 sm:w-4 h-3.5 sm:h-4 ml-1" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
+              )}
             </div>
           </div>
         </div>

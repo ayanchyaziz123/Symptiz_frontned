@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { CheckCircle, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/index';
 import { verifyOTP, resendOTP, clearError } from '../store/slices/authSlice';
@@ -14,8 +14,9 @@ const VerifyOTPPage: React.FC = () => {
   const { loading, error, message } = useAppSelector((state) => state.auth);
   const [localSuccess, setLocalSuccess] = useState(false);
 
-  // Get email from navigation state
+  // Get email and purpose from navigation state
   const email = location.state?.email || '';
+  const purpose = location.state?.purpose || 'registration';
 
   useEffect(() => {
     // Focus first input on mount
@@ -88,14 +89,24 @@ const VerifyOTPPage: React.FC = () => {
         verifyOTP({
           email,
           otp: otpValue,
-          purpose: 'registration',
+          purpose,
         })
       ).unwrap();
 
       setLocalSuccess(true);
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+
+      // Navigate based on purpose
+      if (purpose === 'password_reset') {
+        setTimeout(() => {
+          navigate('/reset-password', {
+            state: { email, otp: otpValue }
+          });
+        }, 2000);
+      } else {
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      }
     } catch (err) {
       console.error('OTP verification failed:', err);
     }
@@ -106,7 +117,7 @@ const VerifyOTPPage: React.FC = () => {
       await dispatch(
         resendOTP({
           email,
-          purpose: 'registration',
+          purpose,
         })
       ).unwrap();
     } catch (err) {
@@ -115,15 +126,16 @@ const VerifyOTPPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-white rounded-xl shadow-sm border border-gray-200 p-8">
         <div className="text-center mb-6">
-          <CheckCircle className="w-12 h-12 mx-auto text-teal-500" />
-          <h1 className="text-3xl font-bold text-gray-900 mt-2">Verify OTP</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold text-gray-900">
+            {purpose === 'password_reset' ? 'Verify OTP for Password Reset' : 'Verify Your Email'}
+          </h1>
+          <p className="text-gray-600 mt-2">
             Enter the 6-digit code sent to
           </p>
-          <p className="text-teal-600 font-semibold">{email}</p>
+          <p className="text-blue-600 font-semibold mt-1">{email}</p>
         </div>
 
         {message && (
@@ -163,7 +175,7 @@ const VerifyOTPPage: React.FC = () => {
                     onChange={(e) => handleChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
                     onPaste={index === 0 ? handlePaste : undefined}
-                    className="w-12 h-14 text-center text-2xl font-semibold border-2 border-gray-300 rounded-lg focus:border-teal-500 focus:ring-2 focus:ring-teal-200 focus:outline-none transition"
+                    className="w-12 h-14 text-center text-2xl font-semibold border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
                   />
                 ))}
               </div>
@@ -172,9 +184,35 @@ const VerifyOTPPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading || otp.join('').length !== 6}
-              className="w-full bg-gradient-to-r from-teal-500 to-cyan-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 shadow-sm"
             >
-              {loading ? 'Verifying...' : 'Verify OTP'}
+              {loading ? (
+              <>
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Verifying...
+              </>
+            ) : (
+              'Verify OTP'
+            )}
             </button>
           </form>
         )}
@@ -185,14 +223,14 @@ const VerifyOTPPage: React.FC = () => {
             <button
               onClick={handleResend}
               disabled={loading}
-              className="text-teal-600 font-semibold hover:underline disabled:opacity-50"
+              className="text-blue-600 font-semibold hover:text-blue-700 transition disabled:opacity-50"
             >
               Resend
             </button>
           </p>
           <Link
             to="/register"
-            className="text-sm text-gray-500 hover:text-gray-700 mt-2 inline-block"
+            className="text-sm text-blue-600 hover:text-blue-700 font-medium transition mt-2 inline-block"
           >
             ← Back to Register
           </Link>
