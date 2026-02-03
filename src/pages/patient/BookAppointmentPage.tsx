@@ -19,11 +19,11 @@ import {
   Star,
   Info,
 } from 'lucide-react';
-import { Doctor } from '../types';
-import { useAppSelector } from '../store';
+import { Provider } from '../../types';
+import { useAppSelector } from '../../store';
 
 interface LocationState {
-  doctor?: Doctor;
+  doctor?: Provider;
   urgencyResult?: any;
 }
 

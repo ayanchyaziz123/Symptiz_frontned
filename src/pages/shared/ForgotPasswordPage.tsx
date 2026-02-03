@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, AlertCircle, ArrowLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../store';
+import { useAppDispatch, useAppSelector } from '../../store';
 import {
   requestPasswordReset,
   clearError,
   clearMessage,
-} from '../store/slices/authSlice';
+} from '../../store/slices/authSlice';
 
 const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState('');

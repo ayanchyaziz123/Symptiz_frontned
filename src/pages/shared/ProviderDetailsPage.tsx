@@ -18,7 +18,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
-const API_URL = 'http://127.0.0.1:8000/api/doctors';
+const API_URL = 'http://127.0.0.1:8000/api/providers';
 
 interface Specialty {
   id: number;
@@ -105,11 +105,11 @@ const DoctorDetails: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get<DoctorDetail>(`${API_URL}/doctors/${id}/`);
+      const response = await axios.get<DoctorDetail>(`${API_URL}/providers/${id}/`);
       setDoctor(response.data);
     } catch (err: any) {
-      console.error('Failed to fetch doctor details:', err);
-      setError(err.response?.data?.error || 'Failed to load doctor details');
+      console.error('Failed to fetch provider details:', err);
+      setError(err.response?.data?.error || 'Failed to load provider details');
     } finally {
       setLoading(false);
     }
@@ -187,7 +187,7 @@ const DoctorDetails: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading doctor details...</p>
+          <p className="mt-4 text-gray-600">Loading provider details...</p>
         </div>
       </div>
     );
@@ -199,7 +199,7 @@ const DoctorDetails: React.FC = () => {
         <div className="max-w-md w-full bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Error</h2>
-          <p className="text-gray-600 mb-6">{error || 'Doctor not found'}</p>
+          <p className="text-gray-600 mb-6">{error || 'Provider not found'}</p>
           <button
             onClick={() => navigate('/')}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"

@@ -8,61 +8,46 @@ import {
   Globe,
   Award,
   Clock,
-  Activity,
   AlertCircle,
   Search,
   ChevronRight,
   Stethoscope,
-  TrendingUp,
   CheckCircle,
   FileText,
-  Filter,
   X,
   SlidersHorizontal,
 } from 'lucide-react';
-import {
-  setSymptomInput,
-  analyzeSymptoms,
-  clearSymptomError,
-} from '../store/slices/symptomSlice';
+import ConversationalSymptomChecker from '../components/ConversationalSymptomChecker';
 import {
   setSearchLocation,
-  filterDoctorsBySpecialty,
+  filterProvidersBySpecialty,
   setFilterAcceptingNew,
   setFilterVideoVisit,
   setFilterMinRating,
-  sortDoctors,
-  resetDoctorFilters,
-  fetchDoctors,
+  sortProviders,
+  resetProviderFilters,
+  fetchProviders,
   fetchCities,
-} from '../store/slices/doctorSlice';
+} from '../store/slices/providerSlice';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   
-  // Auth state
-  const { isAuthenticated, firstName, lastName } = useAppSelector((state) => state.auth);
-  
   // Symptom state
   const {
-    symptomInput,
     analysisResult,
-    isAnalyzing,
-    error: symptomError,
   } = useAppSelector((state) => state.symptom);
-  
-  // Doctor state
-  const {
-    allDoctors,
-    filteredDoctors,
-    searchLocation,
-    loading: doctorsLoading,
-    error: doctorsError,
-    availableCities,
-  } = useAppSelector((state) => state.doctor);
 
-  const userName = firstName && lastName ? `${firstName} ${lastName}` : firstName || 'there';
+  // Provider state
+  const {
+    allProviders,
+    filteredProviders,
+    searchLocation,
+    loading: ProvidersLoading,
+    error: ProvidersError,
+    availableCities,
+  } = useAppSelector((state) => state.provider);
 
   // Local state for suggestions dropdown
   const [showSuggestions, setShowSuggestions] = React.useState(false);
@@ -76,9 +61,9 @@ const HomePage: React.FC = () => {
   const [videoVisitOnly, setVideoVisitOnly] = React.useState(false);
   const [selectedSort, setSelectedSort] = React.useState<string>('');
 
-  // Fetch doctors and cities from backend on component mount
+  // Fetch Providers and cities from backend on component mount
   useEffect(() => {
-    dispatch(fetchDoctors(undefined)); // Fetch all doctors initially
+    dispatch(fetchProviders(undefined)); // Fetch all Providers initially
     dispatch(fetchCities()); // Fetch available cities for suggestions
   }, [dispatch]);
 
@@ -96,20 +81,20 @@ const HomePage: React.FC = () => {
 
   const handleLocationSearch = () => {
     if (searchLocation.trim()) {
-      dispatch(fetchDoctors(searchLocation));
+      dispatch(fetchProviders(searchLocation));
     } else {
-      dispatch(fetchDoctors(undefined)); // Fetch all if location is empty
+      dispatch(fetchProviders(undefined)); // Fetch all if location is empty
     }
     setShowSuggestions(false);
   };
 
   const handleCitySelect = (city: string) => {
     dispatch(setSearchLocation(city));
-    dispatch(fetchDoctors(city));
+    dispatch(fetchProviders(city));
     setShowSuggestions(false);
   };
 
-  // Helper function to get doctor initials for avatar fallback
+  // Helper function to get Provider initials for avatar fallback
   const getInitials = (name: string) => {
     const names = name.replace('Dr. ', '').split(' ');
     if (names.length >= 2) {
@@ -127,21 +112,10 @@ const HomePage: React.FC = () => {
     return `http://127.0.0.1:8000${profilePicture}`;
   };
 
-  const suggestionChips: string[] = [
-    'Headache and fever for 2 days',
-    'Persistent cough with mucus',
-    'Chest pain and shortness of breath',
-    'Skin rash on arms and legs',
-    'Severe stomach pain and nausea',
-    'Lower back pain for over a week',
-    'Anxiety and difficulty sleeping',
-    'Severe toothache with swelling',
-  ];
-
-  // Filter doctors when analysis result changes
+  // Filter Providers when analysis result changes
   useEffect(() => {
     if (analysisResult) {
-      dispatch(filterDoctorsBySpecialty(analysisResult.providerType));
+      dispatch(filterProvidersBySpecialty(analysisResult.providerType));
     }
   }, [analysisResult, dispatch]);
 
@@ -149,23 +123,13 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     if (analysisResult) {
       setTimeout(() => {
-        document.getElementById('analysis-results')?.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'start' 
+        document.getElementById('analysis-results')?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
         });
       }, 100);
     }
   }, [analysisResult]);
-
-  const handleAnalyzeSymptoms = () => {
-    if (symptomInput.trim()) {
-      dispatch(analyzeSymptoms(symptomInput));
-    }
-  };
-
-  const handleSuggestionClick = (suggestion: string) => {
-    dispatch(setSymptomInput(suggestion));
-  };
 
   const handleSearchLocationChange = (location: string) => {
     dispatch(setSearchLocation(location));
@@ -174,7 +138,7 @@ const HomePage: React.FC = () => {
   // Filter handlers
   const handleSpecialtyChange = (specialty: string) => {
     setSelectedSpecialty(specialty);
-    dispatch(filterDoctorsBySpecialty(specialty || null));
+    dispatch(filterProvidersBySpecialty(specialty || null));
   };
 
   const handleRatingChange = (rating: number) => {
@@ -194,7 +158,7 @@ const HomePage: React.FC = () => {
 
   const handleSortChange = (sort: string) => {
     setSelectedSort(sort);
-    dispatch(sortDoctors(sort ? (sort as 'rating' | 'distance' | 'experience') : null));
+    dispatch(sortProviders(sort ? (sort as 'rating' | 'distance' | 'experience') : null));
   };
 
   const handleClearFilters = () => {
@@ -203,7 +167,7 @@ const HomePage: React.FC = () => {
     setAcceptingNewOnly(false);
     setVideoVisitOnly(false);
     setSelectedSort('');
-    dispatch(resetDoctorFilters());
+    dispatch(resetProviderFilters());
   };
 
   const getUrgencyColor = (urgency: string) => {
@@ -213,7 +177,7 @@ const HomePage: React.FC = () => {
       case 'urgent_care':
       case 'urgent care':
         return 'bg-orange-50 border-orange-400 text-orange-800';
-      case 'doctor_visit':
+      case 'Provider_visit':
       case 'schedule appointment':
         return 'bg-blue-50 border-blue-400 text-blue-800';
       case 'home_care':
@@ -231,7 +195,7 @@ const HomePage: React.FC = () => {
       case 'urgent_care':
       case 'urgent care':
         return '⚠️';
-      case 'doctor_visit':
+      case 'Provider_visit':
       case 'schedule appointment':
         return '📅';
       case 'home_care':
@@ -244,7 +208,7 @@ const HomePage: React.FC = () => {
 
   const formatUrgencyText = (urgency: string) => {
     switch (urgency.toLowerCase()) {
-      case 'doctor_visit':
+      case 'Provider_visit':
         return 'Schedule Appointment';
       case 'home_care':
         return 'Self-Care';
@@ -265,106 +229,11 @@ const HomePage: React.FC = () => {
           {/* Left Column - Sticky Symptom Checker */}
           <div className="lg:col-span-2">
             <div className="lg:sticky lg:top-4">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
-                <div className="text-center mb-4 sm:mb-6">
-                  <div className="inline-flex items-center bg-blue-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg mb-3 sm:mb-4 border border-blue-200">
-                    <Activity className="w-4 sm:w-5 h-4 sm:h-5 text-blue-600 mr-2" />
-                    <span className="font-semibold text-blue-700 text-sm sm:text-base">AI Symptom Checker</span>
-                  </div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-                    {isAuthenticated ? `Hello, ${userName}!` : 'How are you feeling today?'}
-                  </h2>
-                  <p className="text-gray-600 text-xs sm:text-sm">
-                    Describe your symptoms in detail
-                  </p>
-                </div>
-
-                {/* Disclaimer */}
-                <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg mb-4">
-                  <div className="flex items-start">
-                    <AlertCircle className="w-4 h-4 text-amber-600 mr-2 mt-0.5 flex-shrink-0" />
-                    <div className="text-xs text-amber-900">
-                      <strong>Medical Disclaimer:</strong> This AI tool provides general guidance only. If experiencing a medical emergency, call 911 immediately.
-                    </div>
-                  </div>
-                </div>
-
-                {/* Error Message */}
-                {symptomError && (
-                  <div className="bg-red-50 border border-red-200 p-3 rounded-lg mb-4">
-                    <div className="flex items-start">
-                      <AlertCircle className="w-4 h-4 text-red-600 mr-2 mt-0.5 flex-shrink-0" />
-                      <div className="text-xs text-red-800">
-                        {symptomError}
-                      </div>
-                      <button
-                        onClick={() => dispatch(clearSymptomError())}
-                        className="ml-auto text-red-600 hover:text-red-800"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Input Section */}
-                <div className="mb-4">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Describe your symptoms *
-                  </label>
-                  <textarea
-                    value={symptomInput}
-                    onChange={(e) => dispatch(setSymptomInput(e.target.value))}
-                    placeholder="Be as detailed as possible. Example: 'I've had a persistent headache and fever for 2 days...'"
-                    rows={5}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm resize-none"
-                  />
-                  <p className="text-xs text-gray-500 mt-2">
-                    Include: symptoms, duration, severity
-                  </p>
-                </div>
-
-                <button
-                  onClick={handleAnalyzeSymptoms}
-                  disabled={!symptomInput.trim() || isAnalyzing}
-                  className="w-full bg-blue-600 text-white py-3 sm:py-3.5 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 flex items-center justify-center text-sm sm:text-base shadow-sm"
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-2 sm:mr-3 h-4 sm:h-5 w-4 sm:w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Analyzing with AI...
-                    </>
-                  ) : (
-                    <>
-                      <Stethoscope className="w-4 sm:w-5 h-4 sm:h-5 mr-2" />
-                      Analyze Symptoms with AI
-                    </>
-                  )}
-                </button>
-
-                {/* Suggestion Chips */}
-                <div className="mt-4">
-                  <p className="text-xs font-medium text-gray-600 mb-2">Quick examples:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {suggestionChips.slice(0, 4).map((suggestion, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleSuggestionClick(suggestion)}
-                        className="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-200 transition border border-gray-300"
-                      >
-                        {suggestion}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <ConversationalSymptomChecker />
             </div>
           </div>
 
-          {/* Right Column - Results and Doctors */}
+          {/* Right Column - Results and Providers */}
           <div className="lg:col-span-3">
             {/* Analysis Results */}
             {analysisResult ? (
@@ -516,14 +385,14 @@ const HomePage: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Recommended Doctors */}
+                  {/* Recommended Providers */}
                   {analysisResult.urgency.toLowerCase() !== 'emergency' && analysisResult.urgency.toLowerCase() !== 'home_care' && analysisResult.urgency.toLowerCase() !== 'self-care' && (
                     <div className="p-4 sm:p-6 pt-0">
                     <div className="mt-4 sm:mt-6">
                       <div className="bg-blue-600 rounded-lg p-4 mb-4 text-white shadow-sm">
                         <div className="flex items-center justify-between">
                           <div>
-                            <h4 className="text-base sm:text-lg font-bold mb-1">Recommended Doctors Near You</h4>
+                            <h4 className="text-base sm:text-lg font-bold mb-1">Recommended Providers Near You</h4>
                             <p className="text-blue-100 text-xs sm:text-sm">
                               Specialty: {analysisResult.providerType}
                             </p>
@@ -533,18 +402,18 @@ const HomePage: React.FC = () => {
                       </div>
 
                       <div className="space-y-3 sm:space-y-4">
-                        {(filteredDoctors.length > 0 ? filteredDoctors : allDoctors).slice(0, 4).map((doctor) => (
+                        {(filteredProviders.length > 0 ? filteredProviders : allProviders).slice(0, 4).map((Provider) => (
                           <div
-                            key={doctor.id}
+                            key={Provider.id}
                             className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 hover:border-blue-300 hover:shadow-md transition"
                           >
                             <div className="flex gap-3 sm:gap-4">
-                              {/* Doctor Avatar */}
+                              {/* Provider Avatar */}
                               <div className="w-12 sm:w-14 h-12 sm:h-14 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden border-2 border-blue-200">
-                                {doctor.profilePicture && getProfilePictureUrl(doctor.profilePicture) ? (
+                                {Provider.profilePicture && getProfilePictureUrl(Provider.profilePicture) ? (
                                   <img
-                                    src={getProfilePictureUrl(doctor.profilePicture)!}
-                                    alt={doctor.name}
+                                    src={getProfilePictureUrl(Provider.profilePicture)!}
+                                    alt={Provider.name}
                                     className="w-full h-full object-cover"
                                     onError={(e) => {
                                       e.currentTarget.style.display = 'none';
@@ -557,43 +426,43 @@ const HomePage: React.FC = () => {
                                 <div
                                   className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center"
                                   style={{
-                                    display: doctor.profilePicture && getProfilePictureUrl(doctor.profilePicture) ? 'none' : 'flex'
+                                    display: Provider.profilePicture && getProfilePictureUrl(Provider.profilePicture) ? 'none' : 'flex'
                                   }}
                                 >
                                   <span className="text-white font-bold text-base sm:text-lg">
-                                    {getInitials(doctor.name)}
+                                    {getInitials(Provider.name)}
                                   </span>
                                 </div>
                               </div>
 
                               <div className="flex-1 min-w-0">
-                                <h5 className="font-bold text-sm sm:text-base text-gray-900 mb-0.5">{doctor.name}</h5>
-                                <p className="text-blue-600 font-medium text-xs sm:text-sm mb-2">{doctor.specialty}</p>
+                                <h5 className="font-bold text-sm sm:text-base text-gray-900 mb-0.5">{Provider.name}</h5>
+                                <p className="text-blue-600 font-medium text-xs sm:text-sm mb-2">{Provider.specialty}</p>
 
                                 <div className="flex items-center gap-2 mb-2 text-xs flex-wrap">
                                   <div className="flex items-center">
                                     <Star className="w-3 h-3 text-yellow-500 fill-yellow-500 mr-1" />
-                                    <span className="font-bold">{doctor.rating}</span>
-                                    <span className="text-gray-500 ml-1">({doctor.reviews})</span>
+                                    <span className="font-bold">{Provider.rating}</span>
+                                    <span className="text-gray-500 ml-1">({Provider.reviews})</span>
                                   </div>
                                   <span className="text-gray-300">•</span>
-                                  <span className="text-gray-600">{doctor.distance}</span>
+                                  <span className="text-gray-600">{Provider.distance}</span>
                                 </div>
 
                                 <div className="space-y-1 mb-2 sm:mb-3 text-xs">
                                   <div className="flex items-center text-gray-600">
                                     <Clock className="w-3 h-3 mr-1.5 flex-shrink-0" />
-                                    <span className="font-medium text-blue-600">{doctor.availability}</span>
+                                    <span className="font-medium text-blue-600">{Provider.availability}</span>
                                   </div>
                                   <div className="flex items-center text-gray-600">
                                     <MapPin className="w-3 h-3 mr-1.5 flex-shrink-0" />
-                                    <span className="truncate">{doctor.clinic}</span>
+                                    <span className="truncate">{Provider.clinic}</span>
                                   </div>
                                 </div>
 
                                 <div className="flex gap-2">
                                   <button
-                                    onClick={() => navigate(`/doctor/${doctor.id}`)}
+                                    onClick={() => navigate(`/Provider/${Provider.id}`)}
                                     className="flex-1 bg-white border-2 border-blue-600 text-blue-600 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold hover:bg-blue-50 transition"
                                   >
                                     View Details
@@ -601,7 +470,7 @@ const HomePage: React.FC = () => {
                                   <button
                                     onClick={() =>
                                       navigate('/book-appointment', {
-                                        state: { doctor, urgencyResult: analysisResult },
+                                        state: { Provider, urgencyResult: analysisResult },
                                       })
                                     }
                                     className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold hover:bg-blue-700 transition flex items-center justify-center shadow-sm"
@@ -622,7 +491,7 @@ const HomePage: React.FC = () => {
               </div>
             ) : null}
 
-            {/* All Doctors Section - Always Visible */}
+            {/* All Providers Section - Always Visible */}
             <div className={`bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 ${analysisResult ? 'mt-4 sm:mt-6' : ''}`}>
               <div className="text-center mb-4 sm:mb-6">
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
@@ -792,31 +661,31 @@ const HomePage: React.FC = () => {
                   </button>
                 </div>
                 <p className="text-gray-600 text-xs sm:text-sm">
-                  <strong>{allDoctors.length} providers</strong> available
+                  <strong>{allProviders.length} providers</strong> available
                 </p>
               </div>
 
               {/* Loading State */}
-              {doctorsLoading && (
+              {ProvidersLoading && (
                 <div className="flex flex-col items-center justify-center py-12">
                   <svg className="animate-spin h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  <p className="text-gray-600 text-sm">Loading doctors from backend...</p>
+                  <p className="text-gray-600 text-sm">Loading Providers from backend...</p>
                 </div>
               )}
 
               {/* Error State */}
-              {doctorsError && !doctorsLoading && (
+              {ProvidersError && !ProvidersLoading && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
                   <div className="flex items-start">
                     <AlertCircle className="w-5 h-5 text-red-600 mr-3 flex-shrink-0 mt-0.5" />
                     <div className="flex-1">
-                      <h3 className="text-sm font-semibold text-red-800 mb-1">Failed to load doctors</h3>
-                      <p className="text-xs text-red-700">{doctorsError}</p>
+                      <h3 className="text-sm font-semibold text-red-800 mb-1">Failed to load Providers</h3>
+                      <p className="text-xs text-red-700">{ProvidersError}</p>
                       <button
-                        onClick={() => dispatch(fetchDoctors())}
+                        onClick={() => dispatch(fetchProviders())}
                         className="mt-3 bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-red-700 transition"
                       >
                         Try Again
@@ -827,12 +696,12 @@ const HomePage: React.FC = () => {
               )}
 
               {/* Empty State */}
-              {!doctorsLoading && !doctorsError && allDoctors.length === 0 && (
+              {!ProvidersLoading && !ProvidersError && allProviders.length === 0 && (
                 <div className="text-center py-12">
                   <User className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-600 text-sm">No doctors available at the moment.</p>
+                  <p className="text-gray-600 text-sm">No Providers available at the moment.</p>
                   <button
-                    onClick={() => dispatch(fetchDoctors())}
+                    onClick={() => dispatch(fetchProviders())}
                     className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition"
                   >
                     Refresh
@@ -840,21 +709,21 @@ const HomePage: React.FC = () => {
                 </div>
               )}
 
-              {/* Doctor Cards */}
-              {!doctorsLoading && allDoctors.length > 0 && (
+              {/* Provider Cards */}
+              {!ProvidersLoading && allProviders.length > 0 && (
               <div className="space-y-3 sm:space-y-4">
-                {allDoctors.map((doctor) => (
+                {allProviders.map((Provider) => (
                   <div
-                    key={doctor.id}
+                    key={Provider.id}
                     className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 hover:border-gray-300 hover:shadow-md transition"
                   >
                     <div className="flex gap-3 sm:gap-4">
-                      {/* Doctor Avatar */}
+                      {/* Provider Avatar */}
                       <div className="w-14 sm:w-16 h-14 sm:h-16 rounded-lg flex items-center justify-center flex-shrink-0 border border-gray-200 overflow-hidden">
-                        {doctor.profilePicture && getProfilePictureUrl(doctor.profilePicture) ? (
+                        {Provider.profilePicture && getProfilePictureUrl(Provider.profilePicture) ? (
                           <img
-                            src={getProfilePictureUrl(doctor.profilePicture)!}
-                            alt={doctor.name}
+                            src={getProfilePictureUrl(Provider.profilePicture)!}
+                            alt={Provider.name}
                             className="w-full h-full object-cover"
                             onError={(e) => {
                               // Fallback to initials if image fails to load
@@ -868,11 +737,11 @@ const HomePage: React.FC = () => {
                         <div
                           className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center"
                           style={{
-                            display: doctor.profilePicture && getProfilePictureUrl(doctor.profilePicture) ? 'none' : 'flex'
+                            display: Provider.profilePicture && getProfilePictureUrl(Provider.profilePicture) ? 'none' : 'flex'
                           }}
                         >
                           <span className="text-white font-bold text-lg sm:text-xl">
-                            {getInitials(doctor.name)}
+                            {getInitials(Provider.name)}
                           </span>
                         </div>
                       </div>
@@ -880,10 +749,10 @@ const HomePage: React.FC = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex-1 min-w-0 pr-2">
-                            <h4 className="font-bold text-base sm:text-lg text-gray-900 truncate">{doctor.name}</h4>
-                            <p className="text-gray-600 font-medium text-xs sm:text-sm">{doctor.specialty}</p>
+                            <h4 className="font-bold text-base sm:text-lg text-gray-900 truncate">{Provider.name}</h4>
+                            <p className="text-gray-600 font-medium text-xs sm:text-sm">{Provider.specialty}</p>
                           </div>
-                          {doctor.acceptingNew && (
+                          {Provider.acceptingNew && (
                             <span className="bg-green-50 text-green-700 px-2 py-1 rounded-lg text-xs font-semibold whitespace-nowrap flex-shrink-0 border border-green-200">
                               ✓ New
                             </span>
@@ -893,41 +762,41 @@ const HomePage: React.FC = () => {
                         <div className="flex items-center gap-2 mb-2 flex-wrap text-xs">
                           <div className="flex items-center">
                             <Star className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-yellow-500 fill-yellow-500 mr-1" />
-                            <span className="font-bold text-gray-900">{doctor.rating}</span>
-                            <span className="text-gray-500 ml-1">({doctor.reviews})</span>
+                            <span className="font-bold text-gray-900">{Provider.rating}</span>
+                            <span className="text-gray-500 ml-1">({Provider.reviews})</span>
                           </div>
                           <span className="text-gray-300">•</span>
                           <div className="flex items-center text-gray-600">
                             <Award className="w-3 sm:w-3.5 h-3 sm:h-3.5 mr-1" />
-                            {doctor.experience}
+                            {Provider.experience}
                           </div>
                           <span className="text-gray-300">•</span>
-                          <div className="text-gray-600">{doctor.distance}</div>
+                          <div className="text-gray-600">{Provider.distance}</div>
                         </div>
 
                         <div className="space-y-1 mb-2 sm:mb-3 text-xs">
                           <div className="flex items-center text-gray-600">
                             <Globe className="w-3 sm:w-3.5 h-3 sm:h-3.5 mr-1.5 sm:mr-2 flex-shrink-0" />
-                            <span className="truncate">{doctor.languages.join(', ')}</span>
+                            <span className="truncate">{Provider.languages.join(', ')}</span>
                           </div>
                           <div className="flex items-center text-gray-600">
                             <MapPin className="w-3 sm:w-3.5 h-3 sm:h-3.5 mr-1.5 sm:mr-2 flex-shrink-0" />
-                            <span className="truncate">{doctor.clinic}</span>
+                            <span className="truncate">{Provider.clinic}</span>
                           </div>
                           <div className="flex items-center font-medium text-blue-600">
                             <Clock className="w-3 sm:w-3.5 h-3 sm:h-3.5 mr-1.5 sm:mr-2 flex-shrink-0" />
-                            {doctor.availability}
+                            {Provider.availability}
                           </div>
                         </div>
 
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-2 sm:pt-3 border-t border-gray-100">
                           <div className="text-xs hidden sm:block">
                             <span className="text-gray-500">From </span>
-                            <span className="font-semibold text-gray-900">{doctor.cost}</span>
+                            <span className="font-semibold text-gray-900">{Provider.cost}</span>
                           </div>
                           <div className="flex gap-2 flex-1 sm:flex-initial">
                             <button
-                              onClick={() => navigate(`/doctor/${doctor.id}`)}
+                              onClick={() => navigate(`/Provider/${Provider.id}`)}
                               className="flex-1 sm:flex-initial bg-white border-2 border-blue-600 text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition text-xs sm:text-sm"
                             >
                               View Details
@@ -935,7 +804,7 @@ const HomePage: React.FC = () => {
                             <button
                               onClick={() =>
                                 navigate('/book-appointment', {
-                                  state: { doctor, urgencyResult: analysisResult },
+                                  state: { Provider, urgencyResult: analysisResult },
                                 })
                               }
                               className="flex-1 sm:flex-initial bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center text-xs sm:text-sm shadow-sm"

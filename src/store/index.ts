@@ -2,15 +2,17 @@ import { configureStore } from '@reduxjs/toolkit';
 import { useDispatch, useSelector, TypedUseSelectorHook } from 'react-redux';
 import authReducer from './slices/authSlice';
 import symptomReducer from './slices/symptomSlice';
-import doctorReducer from './slices/doctorSlice';
+import providerReducer from './slices/providerSlice';
 import appointmentReducer from './slices/appointmentSlice';
+import adminReducer from './slices/adminSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     symptom: symptomReducer,
-    doctor: doctorReducer,
+    provider: providerReducer,
     appointment: appointmentReducer,
+    admin: adminReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

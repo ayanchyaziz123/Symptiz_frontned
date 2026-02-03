@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../store/index';
-import { registerUser, clearError, clearMessage } from '../store/slices/authSlice';
-import { 
-  User, 
-  Mail, 
-  Lock, 
-  Eye, 
-  EyeOff, 
-  Phone, 
+import { useAppDispatch, useAppSelector } from '../../store/index';
+import { registerUser, clearError, clearMessage } from '../../store/slices/authSlice';
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
   UserCircle,
-  AlertCircle 
+  AlertCircle
 } from 'lucide-react';
 
 const RegisterPage: React.FC = () => {
@@ -23,14 +21,12 @@ const RegisterPage: React.FC = () => {
   console.log(userId)
 
   const [formData, setFormData] = useState({
-    username: '',
     email: '',
     password: '',
     confirm_password: '',
     first_name: '',
     last_name: '',
-    user_type: 'patient', // Default to patient
-    phone: '',
+    sex: '',
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -59,8 +55,19 @@ const RegisterPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Auto-generate username from email (part before @)
+    const username = formData.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    // Prepare data with auto-generated fields
+    const registrationData = {
+      ...formData,
+      username: username,
+      user_type: 'patient',
+      phone: '', // Optional field
+    };
+
     try {
-      const result = await dispatch(registerUser(formData)).unwrap();
+      const result = await dispatch(registerUser(registrationData)).unwrap();
       navigate('/verify-otp', {
         state: { email: result.email, userId: result.user_id },
       });
@@ -102,63 +109,6 @@ const RegisterPage: React.FC = () => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Username */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Username</label>
-            <div
-              className={`flex items-center border rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition ${
-                hasFieldError('username')
-                  ? 'border-red-300 focus-within:ring-red-200 focus-within:border-red-500'
-                  : 'border-gray-300'
-              }`}
-            >
-              <User className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
-              <input
-                name="username"
-                placeholder="johndoe"
-                required
-                value={formData.username}
-                onChange={handleChange}
-                className="w-full focus:outline-none text-gray-900 placeholder-gray-400"
-              />
-            </div>
-            {getFieldError('username') && (
-              <p className="text-red-600 text-sm mt-1.5 flex items-center gap-1">
-                <AlertCircle className="w-3.5 h-3.5" />
-                {getFieldError('username')}
-              </p>
-            )}
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
-            <div
-              className={`flex items-center border rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition ${
-                hasFieldError('email')
-                  ? 'border-red-300 focus-within:ring-red-200 focus-within:border-red-500'
-                  : 'border-gray-300'
-              }`}
-            >
-              <Mail className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
-              <input
-                name="email"
-                type="email"
-                placeholder="email@example.com"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full focus:outline-none text-gray-900 placeholder-gray-400"
-              />
-            </div>
-            {getFieldError('email') && (
-              <p className="text-red-600 text-sm mt-1.5 flex items-center gap-1">
-                <AlertCircle className="w-3.5 h-3.5" />
-                {getFieldError('email')}
-              </p>
-            )}
-          </div>
-
           {/* First Name & Last Name */}
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -216,30 +166,63 @@ const RegisterPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Phone */}
+          {/* Sex */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Sex</label>
             <div
               className={`flex items-center border rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition ${
-                hasFieldError('phone')
+                hasFieldError('sex')
                   ? 'border-red-300 focus-within:ring-red-200 focus-within:border-red-500'
                   : 'border-gray-300'
               }`}
             >
-              <Phone className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
-              <input
-                name="phone"
-                placeholder="+1 (555) 000-0000"
+              <UserCircle className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
+              <select
+                name="sex"
                 required
-                value={formData.phone}
+                value={formData.sex}
+                onChange={handleChange}
+                className="w-full focus:outline-none text-gray-900 bg-transparent"
+              >
+                <option value="">Select sex</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            {getFieldError('sex') && (
+              <p className="text-red-600 text-sm mt-1.5 flex items-center gap-1">
+                <AlertCircle className="w-3.5 h-3.5" />
+                {getFieldError('sex')}
+              </p>
+            )}
+          </div>
+
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+            <div
+              className={`flex items-center border rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition ${
+                hasFieldError('email')
+                  ? 'border-red-300 focus-within:ring-red-200 focus-within:border-red-500'
+                  : 'border-gray-300'
+              }`}
+            >
+              <Mail className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
+              <input
+                name="email"
+                type="email"
+                placeholder="email@example.com"
+                required
+                value={formData.email}
                 onChange={handleChange}
                 className="w-full focus:outline-none text-gray-900 placeholder-gray-400"
               />
             </div>
-            {getFieldError('phone') && (
+            {getFieldError('email') && (
               <p className="text-red-600 text-sm mt-1.5 flex items-center gap-1">
                 <AlertCircle className="w-3.5 h-3.5" />
-                {getFieldError('phone')}
+                {getFieldError('email')}
               </p>
             )}
           </div>

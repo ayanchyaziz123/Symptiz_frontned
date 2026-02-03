@@ -12,7 +12,7 @@ const LoginPage: React.FC = () => {
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { loading, error, message, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { loading, error, message, isAuthenticated, userType } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     // Clear errors on mount and unmount
@@ -26,11 +26,25 @@ const LoginPage: React.FC = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    // Redirect if already authenticated
-    if (isAuthenticated) {
-      navigate('/profile');
+    // Redirect if already authenticated - role-based redirect
+    if (isAuthenticated && userType) {
+      console.log('Login redirect - userType:', userType);
+
+      // Normalize userType to lowercase for comparison
+      const normalizedUserType = userType.toLowerCase();
+
+      let redirectPath = '/dashboard'; // default for patients
+
+      if (normalizedUserType === 'provider' || normalizedUserType === 'provider') {
+        redirectPath = '/provider/dashboard';
+      } else if (normalizedUserType === 'admin') {
+        redirectPath = '/admin/dashboard';
+      }
+
+      console.log('Redirecting to:', redirectPath);
+      navigate(redirectPath);
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, userType, navigate]);
 
   const validate = (): boolean => {
     const newErrors: { email?: string; password?: string } = {};
@@ -68,8 +82,8 @@ const LoginPage: React.FC = () => {
         })
       ).unwrap();
 
-      // Success - navigate to profile
-      navigate('/profile');
+      // Success - navigate based on user type (will be set in Redux after login)
+      // The useEffect above will handle the redirect based on userType
     } catch (err: any) {
       console.error('Login failed:', err);
       

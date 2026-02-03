@@ -74,7 +74,7 @@ const clearAuthFromStorage = () => {
 
 // ==================== INITIAL STATE ====================
 
-const initialState: AuthState = {
+const cleanInitialState: AuthState = {
   userId: null,
   email: null,
   token: null,
@@ -93,7 +93,10 @@ const initialState: AuthState = {
   message: null,
   otpExpiresInMinutes: null,
   nextStep: null,
-  
+};
+
+const initialState: AuthState = {
+  ...cleanInitialState,
   ...loadAuthFromStorage(),
 };
 
@@ -438,7 +441,7 @@ const authSlice = createSlice({
   reducers: {
     logout: (state) => {
       clearAuthFromStorage();
-      Object.assign(state, initialState);
+      Object.assign(state, cleanInitialState);
     },
 
     clearError: (state) => {
@@ -668,14 +671,14 @@ const authSlice = createSlice({
       })
       .addCase(logoutUser.fulfilled, (state, action) => {
         clearAuthFromStorage();
-        Object.assign(state, initialState);
+        Object.assign(state, cleanInitialState);
         state.message = action.payload.message;
       })
       .addCase(logoutUser.rejected, (state) => {
         state.loading = false;
         // Even if logout fails on server, clear local state
         clearAuthFromStorage();
-        Object.assign(state, initialState);
+        Object.assign(state, cleanInitialState);
       });
   },
 });

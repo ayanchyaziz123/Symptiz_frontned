@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../store/index';
-import { verifyOTP, resendOTP, clearError } from '../store/slices/authSlice';
+import { useAppDispatch, useAppSelector } from '../../store/index';
+import { verifyOTP, resendOTP, clearError } from '../../store/slices/authSlice';
 
 const VerifyOTPPage: React.FC = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);

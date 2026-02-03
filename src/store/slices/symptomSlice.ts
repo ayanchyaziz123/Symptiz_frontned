@@ -1,4 +1,7 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
+
+const API_URL = 'http://127.0.0.1:8000/api/symptoms/checks';
 
 export interface SymptomAnalysis {
   urgency: string;
@@ -13,11 +16,39 @@ export interface SymptomAnalysis {
   recommendedSpecialties?: string[];
 }
 
+export interface ConversationQuestion {
+  id: string;
+  question: string;
+  type: string;
+  placeholder?: string;
+}
+
+export interface ConversationStep {
+  step: number;
+  step_title: string;
+  questions: ConversationQuestion[];
+  is_final: boolean;
+}
+
+export interface ConversationHistoryItem {
+  question: string;
+  answer: string;
+}
+
 interface SymptomState {
   symptomInput: string;
   analysisResult: SymptomAnalysis | null;
   isAnalyzing: boolean;
   error: string | null;
+
+  // Conversational flow state
+  useConversationalMode: boolean;
+  currentStep: number;
+  conversationQuestions: ConversationQuestion[];
+  conversationStepTitle: string;
+  conversationHistory: ConversationHistoryItem[];
+  conversationAnswers: { [key: string]: string };
+  isLoadingQuestions: boolean;
 }
 
 const initialState: SymptomState = {
@@ -25,6 +56,15 @@ const initialState: SymptomState = {
   analysisResult: null,
   isAnalyzing: false,
   error: null,
+
+  // Conversational flow state
+  useConversationalMode: true, // Enable by default
+  currentStep: 0,
+  conversationQuestions: [],
+  conversationStepTitle: '',
+  conversationHistory: [],
+  conversationAnswers: {},
+  isLoadingQuestions: false,
 };
 
 // Mock AI analysis logic
@@ -208,7 +248,46 @@ const performMockAnalysis = (symptoms: string): SymptomAnalysis => {
   };
 };
 
-// Async thunk for analyzing symptoms
+// Async thunk for starting conversational symptom analysis
+export const startConversation = createAsyncThunk<
+  ConversationStep,
+  string,
+  { rejectValue: string }
+>(
+  'symptom/startConversation',
+  async (initialSymptom, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${API_URL}/start_conversation/`, {
+        initial_symptom: initialSymptom,
+      });
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to start conversation. Please try again.');
+    }
+  }
+);
+
+// Async thunk for continuing the conversation
+export const continueConversation = createAsyncThunk<
+  ConversationStep | SymptomAnalysis,
+  { step: number; conversationHistory: ConversationHistoryItem[] },
+  { rejectValue: string }
+>(
+  'symptom/continueConversation',
+  async ({ step, conversationHistory }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${API_URL}/continue_conversation/`, {
+        step,
+        conversation_history: conversationHistory,
+      });
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to continue conversation. Please try again.');
+    }
+  }
+);
+
+// Async thunk for analyzing symptoms (original non-conversational mode)
 export const analyzeSymptoms = createAsyncThunk<
   SymptomAnalysis,
   string,
@@ -219,11 +298,11 @@ export const analyzeSymptoms = createAsyncThunk<
     try {
       // Simulate AI processing time
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       // TODO: Replace with actual API call
       // const response = await axios.post(`${API_URL}/analyze/`, { symptoms });
       // return response.data;
-      
+
       return performMockAnalysis(symptoms);
     } catch (error) {
       return rejectWithValue('Failed to analyze symptoms. Please try again.');
@@ -244,9 +323,25 @@ const symptomSlice = createSlice({
     clearAnalysisResult: (state) => {
       state.analysisResult = null;
     },
+    toggleConversationalMode: (state) => {
+      state.useConversationalMode = !state.useConversationalMode;
+    },
+    setConversationAnswer: (state, action: PayloadAction<{ questionId: string; answer: string }>) => {
+      state.conversationAnswers[action.payload.questionId] = action.payload.answer;
+    },
+    resetConversation: (state) => {
+      state.currentStep = 0;
+      state.conversationQuestions = [];
+      state.conversationStepTitle = '';
+      state.conversationHistory = [];
+      state.conversationAnswers = {};
+      state.analysisResult = null;
+      state.error = null;
+    },
   },
   extraReducers: (builder) => {
     builder
+      // Original analyze symptoms
       .addCase(analyzeSymptoms.pending, (state) => {
         state.isAnalyzing = true;
         state.error = null;
@@ -258,6 +353,75 @@ const symptomSlice = createSlice({
       .addCase(analyzeSymptoms.rejected, (state, action) => {
         state.isAnalyzing = false;
         state.error = action.payload || 'Failed to analyze symptoms';
+      })
+
+      // Start conversation
+      .addCase(startConversation.pending, (state) => {
+        state.isLoadingQuestions = true;
+        state.error = null;
+      })
+      .addCase(startConversation.fulfilled, (state, action) => {
+        state.isLoadingQuestions = false;
+        state.currentStep = action.payload.step;
+        state.conversationQuestions = action.payload.questions;
+        state.conversationStepTitle = action.payload.step_title;
+
+        // Add initial symptom to conversation history
+        const initialQuestion = "What brings you in today? Please describe your main symptom or concern.";
+        state.conversationHistory.push({
+          question: initialQuestion,
+          answer: state.symptomInput,
+        });
+
+        state.conversationAnswers = {};
+      })
+      .addCase(startConversation.rejected, (state, action) => {
+        state.isLoadingQuestions = false;
+        state.error = action.payload || 'Failed to start conversation';
+      })
+
+      // Continue conversation
+      .addCase(continueConversation.pending, (state) => {
+        state.isLoadingQuestions = true;
+        state.error = null;
+      })
+      .addCase(continueConversation.fulfilled, (state, action) => {
+        state.isLoadingQuestions = false;
+
+        // Check if this is the final analysis
+        if ('is_final' in action.payload && action.payload.is_final) {
+          // This is the final analysis
+          const finalResult = action.payload as any;
+          state.analysisResult = {
+            urgency: finalResult.urgency,
+            condition: finalResult.possible_conditions?.[0] || 'Medical Assessment',
+            description: finalResult.recommendation,
+            recommendation: finalResult.recommendation,
+            providerType: finalResult.provider_type,
+            symptoms: state.conversationHistory.map(h => `${h.question}: ${h.answer}`).join(' | '),
+            possibleCauses: finalResult.possible_conditions || [],
+            whenToSeek: finalResult.urgency === 'emergency' ? 'IMMEDIATELY' :
+                        finalResult.urgency === 'urgent_care' ? 'Within 24 hours' :
+                        finalResult.urgency === 'doctor_visit' ? 'Within a few days' : 'Monitor symptoms',
+            confidence: finalResult.confidence,
+            recommendedSpecialties: finalResult.recommended_specialties || [],
+          };
+
+          // Reset conversation state
+          state.currentStep = 0;
+          state.conversationQuestions = [];
+        } else {
+          // Continue with next step
+          const nextStep = action.payload as ConversationStep;
+          state.currentStep = nextStep.step;
+          state.conversationQuestions = nextStep.questions;
+          state.conversationStepTitle = nextStep.step_title;
+          state.conversationAnswers = {};
+        }
+      })
+      .addCase(continueConversation.rejected, (state, action) => {
+        state.isLoadingQuestions = false;
+        state.error = action.payload || 'Failed to continue conversation';
       });
   },
 });
@@ -266,6 +430,9 @@ export const {
   setSymptomInput,
   clearSymptomError,
   clearAnalysisResult,
+  toggleConversationalMode,
+  setConversationAnswer,
+  resetConversation,
 } = symptomSlice.actions;
 
 export default symptomSlice.reducer;

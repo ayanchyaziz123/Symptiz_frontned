@@ -60,60 +60,156 @@ const DashboardPage: React.FC = () => {
     setTimeout(() => setSelectedAppointment(null), 300);
   };
 
+  // Role-based dashboard title and icon
+  const getDashboardConfig = () => {
+    switch (userType) {
+      case 'doctor':
+        return {
+          title: 'Doctor Dashboard',
+          subtitle: 'Manage your appointments and patients',
+          icon: <Activity className="w-8 h-8 text-white" />,
+          iconBg: 'bg-teal-600'
+        };
+      case 'admin':
+        return {
+          title: 'Admin Dashboard',
+          subtitle: 'Platform management and oversight',
+          icon: <User className="w-8 h-8 text-white" />,
+          iconBg: 'bg-purple-600'
+        };
+      default: // patient
+        return {
+          title: 'My Profile',
+          subtitle: `Welcome back, ${displayName}!`,
+          icon: <Heart className="w-8 h-8 text-white" />,
+          iconBg: 'bg-blue-600'
+        };
+    }
+  };
+
+  const config = getDashboardConfig();
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
+        {/* Welcome Section - Role-based */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 sm:p-8 mb-8">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                My Profile
+                {config.title}
               </h1>
               <p className="text-gray-600 mt-2 text-sm sm:text-base">
-                Welcome back, {displayName}!
+                {config.subtitle}
               </p>
               <p className="text-gray-500 mt-1 text-xs sm:text-sm">
-                {email} • <span className="capitalize">{userType || 'User'}</span>
+                {email} • <span className="capitalize font-semibold text-gray-700">{userType || 'User'}</span>
               </p>
             </div>
-            <div className="hidden sm:flex bg-blue-600 p-4 rounded-xl">
-              <Heart className="w-8 h-8 text-white" />
+            <div className={`hidden sm:flex ${config.iconBg} p-4 rounded-xl`}>
+              {config.icon}
             </div>
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-          <StatCard
-            icon={<Calendar className="w-5 h-5 sm:w-6 sm:h-6" />}
-            title="Appointments"
-            value={loading ? "..." : statistics?.upcoming.toString() || "0"}
-            subtitle="Upcoming"
-            color="bg-blue-600"
-          />
-          <StatCard
-            icon={<CheckCircle className="w-5 h-5 sm:w-6 sm:h-6" />}
-            title="Completed"
-            value={loading ? "..." : statistics?.completed.toString() || "0"}
-            subtitle="Total"
-            color="bg-green-600"
-          />
-          <StatCard
-            icon={<Clock className="w-5 h-5 sm:w-6 sm:h-6" />}
-            title="Pending"
-            value={loading ? "..." : statistics?.pending.toString() || "0"}
-            subtitle="Confirmation"
-            color="bg-yellow-600"
-          />
-          <StatCard
-            icon={<Activity className="w-5 h-5 sm:w-6 sm:h-6" />}
-            title="Total"
-            value={loading ? "..." : statistics?.total.toString() || "0"}
-            subtitle="All Time"
-            color="bg-indigo-600"
-          />
-        </div>
+        {/* Quick Stats - Role-based */}
+        {userType === 'provider' ? (
+          // Doctor Stats
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+            <StatCard
+              icon={<Calendar className="w-5 h-5 sm:w-6 sm:h-6" />}
+              title="Today's Patients"
+              value={loading ? "..." : statistics?.upcoming.toString() || "0"}
+              subtitle="Appointments"
+              color="bg-teal-600"
+            />
+            <StatCard
+              icon={<User className="w-5 h-5 sm:w-6 sm:h-6" />}
+              title="Total Patients"
+              value={loading ? "..." : statistics?.total.toString() || "0"}
+              subtitle="All Time"
+              color="bg-blue-600"
+            />
+            <StatCard
+              icon={<Clock className="w-5 h-5 sm:w-6 sm:h-6" />}
+              title="Pending"
+              value={loading ? "..." : statistics?.pending.toString() || "0"}
+              subtitle="Confirmations"
+              color="bg-yellow-600"
+            />
+            <StatCard
+              icon={<Heart className="w-5 h-5 sm:w-6 sm:h-6" />}
+              title="Rating"
+              value="4.8"
+              subtitle="Average"
+              color="bg-pink-600"
+            />
+          </div>
+        ) : userType === 'admin' ? (
+          // Admin Stats
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+            <StatCard
+              icon={<User className="w-5 h-5 sm:w-6 sm:h-6" />}
+              title="Total Users"
+              value="1,234"
+              subtitle="Active"
+              color="bg-purple-600"
+            />
+            <StatCard
+              icon={<Activity className="w-5 h-5 sm:w-6 sm:h-6" />}
+              title="Doctors"
+              value="150"
+              subtitle="Verified"
+              color="bg-teal-600"
+            />
+            <StatCard
+              icon={<Clock className="w-5 h-5 sm:w-6 sm:h-6" />}
+              title="Pending"
+              value="12"
+              subtitle="Approvals"
+              color="bg-yellow-600"
+            />
+            <StatCard
+              icon={<CheckCircle className="w-5 h-5 sm:w-6 sm:h-6" />}
+              title="Revenue"
+              value="$45K"
+              subtitle="This Month"
+              color="bg-green-600"
+            />
+          </div>
+        ) : (
+          // Patient Stats
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+            <StatCard
+              icon={<Calendar className="w-5 h-5 sm:w-6 sm:h-6" />}
+              title="Appointments"
+              value={loading ? "..." : statistics?.upcoming.toString() || "0"}
+              subtitle="Upcoming"
+              color="bg-blue-600"
+            />
+            <StatCard
+              icon={<CheckCircle className="w-5 h-5 sm:w-6 sm:h-6" />}
+              title="Completed"
+              value={loading ? "..." : statistics?.completed.toString() || "0"}
+              subtitle="Total"
+              color="bg-green-600"
+            />
+            <StatCard
+              icon={<Clock className="w-5 h-5 sm:w-6 sm:h-6" />}
+              title="Pending"
+              value={loading ? "..." : statistics?.pending.toString() || "0"}
+              subtitle="Confirmation"
+              color="bg-yellow-600"
+            />
+            <StatCard
+              icon={<Activity className="w-5 h-5 sm:w-6 sm:h-6" />}
+              title="Total"
+              value={loading ? "..." : statistics?.total.toString() || "0"}
+              subtitle="All Time"
+              color="bg-indigo-600"
+            />
+          </div>
+        )}
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
@@ -235,30 +331,83 @@ const DashboardPage: React.FC = () => {
 
           {/* Right Column - Quick Actions & Messages */}
           <div className="space-y-6">
-            {/* Quick Actions */}
+            {/* Quick Actions - Role-based */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
               <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-5">Quick Actions</h2>
               <div className="space-y-3">
-                <QuickActionButton
-                  icon={<Calendar className="w-5 h-5" />}
-                  text="Book Appointment"
-                  color="bg-blue-600 hover:bg-blue-700"
-                />
-                <QuickActionButton
-                  icon={<MessageSquare className="w-5 h-5" />}
-                  text="Consult Doctor"
-                  color="bg-indigo-600 hover:bg-indigo-700"
-                />
-                <QuickActionButton
-                  icon={<FileText className="w-5 h-5" />}
-                  text="Upload Reports"
-                  color="bg-green-600 hover:bg-green-700"
-                />
-                <QuickActionButton
-                  icon={<Pill className="w-5 h-5" />}
-                  text="Refill Prescription"
-                  color="bg-purple-600 hover:bg-purple-700"
-                />
+                {userType === 'provider' ? (
+                  // Doctor Quick Actions
+                  <>
+                    <QuickActionButton
+                      icon={<Calendar className="w-5 h-5" />}
+                      text="Manage Availability"
+                      color="bg-teal-600 hover:bg-teal-700"
+                    />
+                    <QuickActionButton
+                      icon={<User className="w-5 h-5" />}
+                      text="View Patients"
+                      color="bg-blue-600 hover:bg-blue-700"
+                    />
+                    <QuickActionButton
+                      icon={<FileText className="w-5 h-5" />}
+                      text="Patient Records"
+                      color="bg-indigo-600 hover:bg-indigo-700"
+                    />
+                    <QuickActionButton
+                      icon={<Activity className="w-5 h-5" />}
+                      text="Update Profile"
+                      color="bg-green-600 hover:bg-green-700"
+                    />
+                  </>
+                ) : userType === 'admin' ? (
+                  // Admin Quick Actions
+                  <>
+                    <QuickActionButton
+                      icon={<User className="w-5 h-5" />}
+                      text="Manage Users"
+                      color="bg-purple-600 hover:bg-purple-700"
+                    />
+                    <QuickActionButton
+                      icon={<Activity className="w-5 h-5" />}
+                      text="Approve Doctors"
+                      color="bg-teal-600 hover:bg-teal-700"
+                    />
+                    <QuickActionButton
+                      icon={<FileText className="w-5 h-5" />}
+                      text="View Reports"
+                      color="bg-blue-600 hover:bg-blue-700"
+                    />
+                    <QuickActionButton
+                      icon={<Calendar className="w-5 h-5" />}
+                      text="Platform Settings"
+                      color="bg-indigo-600 hover:bg-indigo-700"
+                    />
+                  </>
+                ) : (
+                  // Patient Quick Actions
+                  <>
+                    <QuickActionButton
+                      icon={<Calendar className="w-5 h-5" />}
+                      text="Book Appointment"
+                      color="bg-blue-600 hover:bg-blue-700"
+                    />
+                    <QuickActionButton
+                      icon={<MessageSquare className="w-5 h-5" />}
+                      text="Consult Doctor"
+                      color="bg-indigo-600 hover:bg-indigo-700"
+                    />
+                    <QuickActionButton
+                      icon={<FileText className="w-5 h-5" />}
+                      text="Upload Reports"
+                      color="bg-green-600 hover:bg-green-700"
+                    />
+                    <QuickActionButton
+                      icon={<Pill className="w-5 h-5" />}
+                      text="Refill Prescription"
+                      color="bg-purple-600 hover:bg-purple-700"
+                    />
+                  </>
+                )}
               </div>
             </div>
 

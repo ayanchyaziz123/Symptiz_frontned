@@ -1,11 +1,33 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { Doctor } from '../../types';
+import { Provider } from '../../types';
 
-interface DoctorState {
-  allDoctors: Doctor[];
-  filteredDoctors: Doctor[];
-  selectedDoctor: Doctor | null;
+// Provider Dashboard Types
+interface ProviderStats {
+  totalPatients: number;
+  appointmentsToday: number;
+  upcomingAppointments: number;
+  completedAppointments: number;
+  averageRating: number;
+  totalReviews: number;
+}
+
+interface Appointment {
+  id: number;
+  patientName: string;
+  patientAge: number;
+  appointmentDate: string;
+  appointmentTime: string;
+  appointmentType: string;
+  status: 'scheduled' | 'completed' | 'cancelled' | 'confirmed';
+  symptoms?: string;
+  notes?: string;
+}
+
+interface ProviderState {
+  allProviders: Provider[];
+  filteredProviders: Provider[];
+  selectedProvider: Provider | null;
   searchLocation: string;
   filterSpecialty: string | null;
   filterAcceptingNew: boolean;
@@ -16,10 +38,16 @@ interface DoctorState {
   error: string | null;
   availableCities: string[];
   citiesLoading: boolean;
+
+  // Provider Dashboard
+  dashboardStats: ProviderStats | null;
+  appointments: Appointment[];
+  dashboardLoading: boolean;
+  dashboardError: string | null;
 }
 
-// Backend doctor interface (matches DoctorListSerializer)
-interface BackendDoctorList {
+// Backend provider interface (matches ProviderListSerializer)
+interface BackendProviderList {
   id: number;
   full_name: string;
   specialties: string[];  // Array of specialty names
@@ -41,8 +69,8 @@ interface BackendDoctorList {
   } | null;
 }
 
-// Backend doctor interface for search (matches DoctorSerializer)
-interface BackendDoctorSearch {
+// Backend provider interface for search (matches ProviderSerializer)
+interface BackendProviderSearch {
   id: number;
   full_name: string;
   user: {
@@ -73,11 +101,11 @@ interface BackendDoctorSearch {
   }>;
 }
 
-type BackendDoctor = BackendDoctorList | BackendDoctorSearch;
+type BackendProvider = BackendProviderList | BackendProviderSearch;
 
-const API_URL = 'http://127.0.0.1:8000/api/doctors';
+const API_URL = 'http://127.0.0.1:8000/api';
 
-const initialDoctors: Doctor[] = [
+const initialProviders: Provider[] = [
   {
     id: 1,
     name: 'Dr. Sarah Johnson',
@@ -200,10 +228,10 @@ const initialDoctors: Doctor[] = [
   },
 ];
 
-const initialState: DoctorState = {
-  allDoctors: [],
-  filteredDoctors: [],
-  selectedDoctor: null,
+const initialState: ProviderState = {
+  allProviders: [],
+  filteredProviders: [],
+  selectedProvider: null,
   searchLocation: '',
   filterSpecialty: null,
   filterAcceptingNew: false,
@@ -214,24 +242,30 @@ const initialState: DoctorState = {
   error: null,
   availableCities: [],
   citiesLoading: false,
+
+  // Provider Dashboard
+  dashboardStats: null,
+  appointments: [],
+  dashboardLoading: false,
+  dashboardError: null,
 };
 
 // Type guard to check if it's a search result
-const isSearchResult = (doctor: BackendDoctor): doctor is BackendDoctorSearch => {
-  return 'clinics_info' in doctor;
+const isSearchResult = (provider: BackendProvider): provider is BackendProviderSearch => {
+  return 'clinics_info' in provider;
 };
 
-// Helper function to map backend doctor to frontend format
-const mapBackendDoctor = (backendDoctor: BackendDoctor): Doctor => {
+// Helper function to map backend provider to frontend format
+const mapBackendProvider = (backendProvider: BackendProvider): Provider => {
   let primaryClinic: { name: string; city: string; state: string; accepts_medicaid: boolean; accepts_medicare: boolean; } | null;
   let specialty: string;
   let languages: string[];
   let profilePicture: string | null = null;
 
   // Handle different response formats
-  if (isSearchResult(backendDoctor)) {
-    // Search endpoint format (DoctorSerializer)
-    const clinicAffiliation = backendDoctor.clinics_info.find(c => c.is_primary) || backendDoctor.clinics_info[0];
+  if (isSearchResult(backendProvider)) {
+    // Search endpoint format (ProviderSerializer)
+    const clinicAffiliation = backendProvider.clinics_info.find(c => c.is_primary) || backendProvider.clinics_info[0];
     primaryClinic = clinicAffiliation ? {
       name: clinicAffiliation.clinic.name,
       city: clinicAffiliation.clinic.city,
@@ -239,13 +273,13 @@ const mapBackendDoctor = (backendDoctor: BackendDoctor): Doctor => {
       accepts_medicaid: clinicAffiliation.clinic.accepts_medicaid,
       accepts_medicare: clinicAffiliation.clinic.accepts_medicare,
     } : null;
-    specialty = backendDoctor.specialties.length > 0 ? backendDoctor.specialties[0].name : 'General Practice';
-    languages = backendDoctor.languages ? backendDoctor.languages.split(',').map(lang => lang.trim()) : ['English'];
-    profilePicture = backendDoctor.user?.profile_picture || null;
+    specialty = backendProvider.specialties.length > 0 ? backendProvider.specialties[0].name : 'General Practice';
+    languages = backendProvider.languages ? backendProvider.languages.split(',').map(lang => lang.trim()) : ['English'];
+    profilePicture = backendProvider.user?.profile_picture || null;
   } else {
-    // List endpoint format (DoctorListSerializer)
-    primaryClinic = backendDoctor.primary_clinic;
-    specialty = backendDoctor.specialties.length > 0 ? backendDoctor.specialties[0] : 'General Practice';
+    // List endpoint format (ProviderListSerializer)
+    primaryClinic = backendProvider.primary_clinic;
+    specialty = backendProvider.specialties.length > 0 ? backendProvider.specialties[0] : 'General Practice';
     languages = ['English']; // Default for list format
     profilePicture = null; // List format doesn't include user details
   }
@@ -263,19 +297,19 @@ const mapBackendDoctor = (backendDoctor: BackendDoctor): Doctor => {
   }
 
   return {
-    id: backendDoctor.id,
-    name: backendDoctor.full_name,
+    id: backendProvider.id,
+    name: backendProvider.full_name,
     specialty,
-    experience: `${backendDoctor.years_experience} years`,
-    rating: Number(backendDoctor.average_rating),
-    reviews: backendDoctor.total_reviews,
+    experience: `${backendProvider.years_experience} years`,
+    rating: Number(backendProvider.average_rating),
+    reviews: backendProvider.total_reviews,
     languages,
     distance: primaryClinic ? `${primaryClinic.city}, ${primaryClinic.state}` : 'N/A',
     clinic: primaryClinic?.name || 'Clinic information not available',
-    availability: backendDoctor.accepting_new_patients ? 'Available soon' : 'Not accepting new patients',
+    availability: backendProvider.accepting_new_patients ? 'Available soon' : 'Not accepting new patients',
     cost,
-    acceptingNew: backendDoctor.accepting_new_patients,
-    videoVisit: backendDoctor.video_visit_available,
+    acceptingNew: backendProvider.accepting_new_patients,
+    videoVisit: backendProvider.video_visit_available,
     profilePicture,
   };
 };
@@ -285,20 +319,20 @@ interface PaginatedResponse {
   count: number;
   next: string | null;
   previous: string | null;
-  results: BackendDoctorList[];
+  results: BackendProviderList[];
 }
 
-// Async thunk for fetching doctors from backend
-export const fetchDoctors = createAsyncThunk(
-  'doctor/fetchDoctors',
+// Async thunk for fetching providers from backend
+export const fetchProviders = createAsyncThunk(
+  'provider/fetchProviders',
   async (location: string | undefined, { rejectWithValue }) => {
     try {
-      let url = `${API_URL}/doctors/`;
+      let url = `${API_URL}/providers/providers/`;
 
       // Add location filter if provided
       if (location && location.trim()) {
         // Use the custom search endpoint for location filtering
-        url = `${API_URL}/doctors/search/`;
+        url = `${API_URL}/providers/providers/search/`;
 
         // Extract city from location string (e.g., "Chicago, IL" or "Chicago")
         const locationParts = location.split(',').map(part => part.trim());
@@ -312,31 +346,31 @@ export const fetchDoctors = createAsyncThunk(
         url += `?${params.toString()}`;
       }
 
-      const response = await axios.get<BackendDoctor[]>(url);
+      const response = await axios.get<BackendProvider[]>(url);
 
       // Handle both paginated and non-paginated responses
-      let doctors: BackendDoctor[];
+      let providers: BackendProvider[];
       if (Array.isArray(response.data)) {
-        doctors = response.data;
+        providers = response.data;
       } else {
-        doctors = (response.data as PaginatedResponse).results;
+        providers = (response.data as PaginatedResponse).results;
       }
 
-      const mappedDoctors = doctors.map(mapBackendDoctor);
-      return mappedDoctors;
+      const mappedProviders = providers.map(mapBackendProvider);
+      return mappedProviders;
     } catch (error: any) {
-      console.error('Failed to fetch doctors:', error);
-      return rejectWithValue(error.response?.data?.error || 'Failed to fetch doctors');
+      console.error('Failed to fetch providers:', error);
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch providers');
     }
   }
 );
 
 // Async thunk for fetching available cities
 export const fetchCities = createAsyncThunk(
-  'doctor/fetchCities',
+  'provider/fetchCities',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get<{ cities: string[] }>(`${API_URL}/clinics/cities/`);
+      const response = await axios.get<{ cities: string[] }>(`${API_URL}/providers/clinics/cities/`);
       return response.data.cities;
     } catch (error: any) {
       console.error('Failed to fetch cities:', error);
@@ -345,32 +379,96 @@ export const fetchCities = createAsyncThunk(
   }
 );
 
+// Async thunk for fetching provider dashboard stats
+export const fetchProviderDashboardStats = createAsyncThunk(
+  'provider/fetchDashboardStats',
+  async (_, { rejectWithValue, getState }) => {
+    try {
+      const state = getState() as any;
+      const token = state.auth.token;
+      const response = await axios.get(`${API_URL}/providers/dashboard/stats/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Failed to fetch provider dashboard stats:', error);
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch dashboard stats');
+    }
+  }
+);
+
+// Async thunk for fetching provider appointments
+export const fetchProviderAppointments = createAsyncThunk(
+  'provider/fetchAppointments',
+  async (_, { rejectWithValue, getState }) => {
+    try {
+      const state = getState() as any;
+      const token = state.auth.token;
+      const response = await axios.get(`${API_URL}/appointments/provider/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data.results || response.data;
+    } catch (error: any) {
+      console.error('Failed to fetch provider appointments:', error);
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch appointments');
+    }
+  }
+);
+
+// Async thunk for updating appointment status
+export const updateAppointmentStatus = createAsyncThunk(
+  'provider/updateAppointmentStatus',
+  async ({ appointmentId, status }: { appointmentId: number; status: string }, { rejectWithValue, getState }) => {
+    try {
+      const state = getState() as any;
+      const token = state.auth.token;
+      const response = await axios.patch(
+        `${API_URL}/appointments/${appointmentId}/`,
+        { status },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('Failed to update appointment status:', error);
+      return rejectWithValue(error.response?.data?.error || 'Failed to update appointment');
+    }
+  }
+);
+
 // Helper function to apply all filters
-const applyAllFilters = (state: DoctorState) => {
-  let filtered = state.allDoctors;
+const applyAllFilters = (state: ProviderState) => {
+  let filtered = state.allProviders;
 
   // Filter by specialty
   if (state.filterSpecialty) {
     filtered = filtered.filter(
-      (doctor) =>
-        doctor.specialty === state.filterSpecialty ||
-        doctor.specialty === 'Family Medicine'
+      (provider) =>
+        provider.specialty === state.filterSpecialty ||
+        provider.specialty === 'Family Medicine'
     );
   }
 
   // Filter by accepting new patients
   if (state.filterAcceptingNew) {
-    filtered = filtered.filter((doctor) => doctor.acceptingNew);
+    filtered = filtered.filter((provider) => provider.acceptingNew);
   }
 
   // Filter by video visit
   if (state.filterVideoVisit) {
-    filtered = filtered.filter((doctor) => doctor.videoVisit);
+    filtered = filtered.filter((provider) => provider.videoVisit);
   }
 
   // Filter by minimum rating
   if (state.filterMinRating > 0) {
-    filtered = filtered.filter((doctor) => doctor.rating >= state.filterMinRating);
+    filtered = filtered.filter((provider) => provider.rating >= state.filterMinRating);
   }
 
   // Apply sorting if set
@@ -391,22 +489,22 @@ const applyAllFilters = (state: DoctorState) => {
     });
   }
 
-  state.filteredDoctors = filtered;
+  state.filteredProviders = filtered;
 };
 
-const doctorSlice = createSlice({
-  name: 'doctor',
+const providerSlice = createSlice({
+  name: 'provider',
   initialState,
   reducers: {
-    setSelectedDoctor: (state, action: PayloadAction<Doctor | null>) => {
-      state.selectedDoctor = action.payload;
+    setSelectedProvider: (state, action: PayloadAction<Provider | null>) => {
+      state.selectedProvider = action.payload;
     },
 
     setSearchLocation: (state, action: PayloadAction<string>) => {
       state.searchLocation = action.payload;
     },
 
-    filterDoctorsBySpecialty: (state, action: PayloadAction<string | null>) => {
+    filterProvidersBySpecialty: (state, action: PayloadAction<string | null>) => {
       state.filterSpecialty = action.payload;
       applyAllFilters(state);
     },
@@ -426,52 +524,52 @@ const doctorSlice = createSlice({
       applyAllFilters(state);
     },
 
-    searchDoctors: (state, action: PayloadAction<string>) => {
+    searchProviders: (state, action: PayloadAction<string>) => {
       const searchTerm = action.payload.toLowerCase();
       
       if (!searchTerm) {
-        state.filteredDoctors = state.allDoctors;
+        state.filteredProviders = state.allProviders;
       } else {
-        state.filteredDoctors = state.allDoctors.filter(
-          (doctor) =>
-            doctor.name.toLowerCase().includes(searchTerm) ||
-            doctor.specialty.toLowerCase().includes(searchTerm) ||
-            doctor.clinic.toLowerCase().includes(searchTerm)
+        state.filteredProviders = state.allProviders.filter(
+          (provider) =>
+            provider.name.toLowerCase().includes(searchTerm) ||
+            provider.specialty.toLowerCase().includes(searchTerm) ||
+            provider.clinic.toLowerCase().includes(searchTerm)
         );
       }
     },
 
-    sortDoctors: (state, action: PayloadAction<'rating' | 'distance' | 'experience' | null>) => {
+    sortProviders: (state, action: PayloadAction<'rating' | 'distance' | 'experience' | null>) => {
       state.sortBy = action.payload;
       applyAllFilters(state);
     },
 
-    resetDoctorFilters: (state) => {
+    resetProviderFilters: (state) => {
       state.filterSpecialty = null;
       state.filterAcceptingNew = false;
       state.filterVideoVisit = false;
       state.filterMinRating = 0;
       state.sortBy = null;
-      state.filteredDoctors = state.allDoctors;
+      state.filteredProviders = state.allProviders;
     },
 
-    clearDoctorError: (state) => {
+    clearProviderError: (state) => {
       state.error = null;
     },
   },
 
   extraReducers: (builder) => {
     builder
-      .addCase(fetchDoctors.pending, (state) => {
+      .addCase(fetchProviders.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchDoctors.fulfilled, (state, action) => {
+      .addCase(fetchProviders.fulfilled, (state, action) => {
         state.loading = false;
-        state.allDoctors = action.payload;
-        state.filteredDoctors = action.payload;
+        state.allProviders = action.payload;
+        state.filteredProviders = action.payload;
       })
-      .addCase(fetchDoctors.rejected, (state, action) => {
+      .addCase(fetchProviders.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
@@ -484,21 +582,54 @@ const doctorSlice = createSlice({
       })
       .addCase(fetchCities.rejected, (state) => {
         state.citiesLoading = false;
+      })
+      // Provider Dashboard Stats
+      .addCase(fetchProviderDashboardStats.pending, (state) => {
+        state.dashboardLoading = true;
+        state.dashboardError = null;
+      })
+      .addCase(fetchProviderDashboardStats.fulfilled, (state, action) => {
+        state.dashboardLoading = false;
+        state.dashboardStats = action.payload;
+      })
+      .addCase(fetchProviderDashboardStats.rejected, (state, action) => {
+        state.dashboardLoading = false;
+        state.dashboardError = action.payload as string;
+      })
+      // Provider Appointments
+      .addCase(fetchProviderAppointments.pending, (state) => {
+        state.dashboardLoading = true;
+        state.dashboardError = null;
+      })
+      .addCase(fetchProviderAppointments.fulfilled, (state, action) => {
+        state.dashboardLoading = false;
+        state.appointments = action.payload;
+      })
+      .addCase(fetchProviderAppointments.rejected, (state, action) => {
+        state.dashboardLoading = false;
+        state.dashboardError = action.payload as string;
+      })
+      // Update Appointment Status
+      .addCase(updateAppointmentStatus.fulfilled, (state, action) => {
+        const index = state.appointments.findIndex(apt => apt.id === action.payload.id);
+        if (index !== -1) {
+          state.appointments[index] = action.payload;
+        }
       });
   },
 });
 
 export const {
-  setSelectedDoctor,
+  setSelectedProvider,
   setSearchLocation,
-  filterDoctorsBySpecialty,
+  filterProvidersBySpecialty,
   setFilterAcceptingNew,
   setFilterVideoVisit,
   setFilterMinRating,
-  searchDoctors,
-  sortDoctors,
-  resetDoctorFilters,
-  clearDoctorError,
-} = doctorSlice.actions;
+  searchProviders,
+  sortProviders,
+  resetProviderFilters,
+  clearProviderError,
+} = providerSlice.actions;
 
-export default doctorSlice.reducer;
+export default providerSlice.reducer;
