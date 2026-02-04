@@ -184,12 +184,9 @@ const BookAppointment: React.FC = () => {
 
       const time24h = `${hours.toString().padStart(2, '0')}:${minutes}`;
 
-      // Get clinic from doctor's clinic info
-      const clinicId = 1; // You would get this from the doctor's primary clinic
-
       const appointmentData = {
-        doctor: selectedDoctor!.id,
-        clinic: clinicId,
+        provider: selectedDoctor!.id,
+        clinic: selectedDoctor!.clinicId,
         appointment_date: formData.date,
         appointment_time: time24h,
         appointment_type: formData.appointmentType,
@@ -406,11 +403,11 @@ const BookAppointment: React.FC = () => {
                 </h3>
                 <div className="space-y-5">
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                    <label className="block text-xs font-semibold text-gray-700 mb-2">
                       Full Name *
                     </label>
-                    <div className="flex items-center border-2 border-gray-300 rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 bg-gray-50 hover:bg-white transition">
-                      <User className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
+                    <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 bg-gray-50 hover:bg-white transition">
+                      <User className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
                       <input
                         name="name"
                         type="text"
@@ -425,11 +422,11 @@ const BookAppointment: React.FC = () => {
 
                   <div className="grid md:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-2">
+                      <label className="block text-xs font-semibold text-gray-700 mb-2">
                         Email Address *
                       </label>
-                      <div className="flex items-center border-2 border-gray-300 rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 bg-gray-50 hover:bg-white transition">
-                        <Mail className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
+                      <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 bg-gray-50 hover:bg-white transition">
+                        <Mail className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
                         <input
                           name="email"
                           type="email"
@@ -443,11 +440,11 @@ const BookAppointment: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-2">
+                      <label className="block text-xs font-semibold text-gray-700 mb-2">
                         Phone Number *
                       </label>
-                      <div className="flex items-center border-2 border-gray-300 rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 bg-gray-50 hover:bg-white transition">
-                        <Phone className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
+                      <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 bg-gray-50 hover:bg-white transition">
+                        <Phone className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
                         <input
                           name="phone"
                           type="tel"
@@ -471,7 +468,7 @@ const BookAppointment: React.FC = () => {
                 <div className="space-y-5">
                   {/* Appointment Type */}
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-3">
+                    <label className="block text-xs font-semibold text-gray-700 mb-3">
                       Appointment Type *
                     </label>
                     <div className="grid grid-cols-3 gap-4">
@@ -504,11 +501,11 @@ const BookAppointment: React.FC = () => {
                   {/* Date and Time */}
                   <div className="grid md:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-2">
+                      <label className="block text-xs font-semibold text-gray-700 mb-2">
                         Appointment Date *
                       </label>
-                      <div className="flex items-center border-2 border-gray-300 rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 bg-gray-50 hover:bg-white transition">
-                        <Calendar className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
+                      <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 bg-gray-50 hover:bg-white transition">
+                        <Calendar className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
                         <input
                           name="date"
                           type="date"
@@ -523,11 +520,11 @@ const BookAppointment: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-2">
+                      <label className="block text-xs font-semibold text-gray-700 mb-2">
                         Appointment Time *
                       </label>
-                      <div className="flex items-center border-2 border-gray-300 rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 bg-gray-50 hover:bg-white transition">
-                        <Clock className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
+                      <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 bg-gray-50 hover:bg-white transition">
+                        <Clock className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
                         <select
                           name="time"
                           value={formData.time}
@@ -557,7 +554,7 @@ const BookAppointment: React.FC = () => {
 
                   {/* Reason for Visit */}
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                    <label className="block text-xs font-semibold text-gray-700 mb-2">
                       Reason for Visit
                     </label>
                     <div className="border-2 border-gray-300 rounded-xl p-4 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 bg-gray-50 hover:bg-white transition">
@@ -578,11 +575,11 @@ const BookAppointment: React.FC = () => {
 
                   {/* Insurance */}
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                    <label className="block text-xs font-semibold text-gray-700 mb-2">
                       Insurance Provider
                     </label>
-                    <div className="flex items-center border-2 border-gray-300 rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 bg-gray-50 hover:bg-white transition">
-                      <CreditCard className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
+                    <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 bg-gray-50 hover:bg-white transition">
+                      <CreditCard className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
                       <select
                         name="insurance"
                         value={formData.insurance}
@@ -621,19 +618,19 @@ const BookAppointment: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => navigate(-1)}
-                  className="flex-1 px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition transform hover:scale-105"
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition text-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading || loadingSlots}
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-xl font-bold hover:from-blue-700 hover:to-blue-800 transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-blue-600 disabled:hover:to-blue-700 shadow-lg transform hover:scale-105"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-blue-600 disabled:hover:to-blue-700 shadow-sm text-sm"
                 >
                   {loading ? (
                     <>
                       <svg
-                        className="animate-spin -ml-1 mr-3 h-6 w-6 text-white"
+                        className="animate-spin -ml-1 mr-3 h-4 w-4 text-white"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"

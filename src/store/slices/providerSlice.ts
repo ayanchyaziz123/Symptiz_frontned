@@ -24,6 +24,51 @@ interface Appointment {
   notes?: string;
 }
 
+interface AvailabilitySlot {
+  id: number;
+  clinic_name: string;
+  day_of_week: number;
+  day_name: string;
+  start_time: string;
+  end_time: string;
+  is_active: boolean;
+}
+
+interface SpecialtyItem {
+  id: number;
+  name: string;
+  icon: string;
+  description: string;
+}
+
+interface ProviderProfile {
+  id: number;
+  user: {
+    id: number;
+    username: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    full_name: string;
+    user_type: string;
+    phone: string;
+    profile_picture: string | null;
+    city: string;
+    state: string;
+  };
+  full_name: string;
+  specialties: SpecialtyItem[];
+  license_number: string;
+  years_experience: number;
+  bio: string;
+  languages: string;
+  average_rating: number;
+  total_reviews: number;
+  accepting_new_patients: boolean;
+  video_visit_available: boolean;
+  is_verified: boolean;
+}
+
 interface ProviderState {
   allProviders: Provider[];
   filteredProviders: Provider[];
@@ -44,6 +89,19 @@ interface ProviderState {
   appointments: Appointment[];
   dashboardLoading: boolean;
   dashboardError: string | null;
+
+  // Availability
+  availability: AvailabilitySlot[];
+  availabilityLoading: boolean;
+
+  // Own Provider Profile
+  ownProfile: ProviderProfile | null;
+  profileLoading: boolean;
+  profileError: string | null;
+
+  // All specialties (for settings dropdown)
+  allSpecialties: SpecialtyItem[];
+  specialtiesLoading: boolean;
 }
 
 // Backend provider interface (matches ProviderListSerializer)
@@ -103,7 +161,7 @@ interface BackendProviderSearch {
 
 type BackendProvider = BackendProviderList | BackendProviderSearch;
 
-const API_URL = 'http://127.0.0.1:8000/api';
+const API_URL = 'http://18.222.222.50:8000/api';
 
 const initialProviders: Provider[] = [
   {
@@ -248,6 +306,19 @@ const initialState: ProviderState = {
   appointments: [],
   dashboardLoading: false,
   dashboardError: null,
+
+  // Availability
+  availability: [],
+  availabilityLoading: false,
+
+  // Own Provider Profile
+  ownProfile: null,
+  profileLoading: false,
+  profileError: null,
+
+  // All specialties
+  allSpecialties: [],
+  specialtiesLoading: false,
 };
 
 // Type guard to check if it's a search result
@@ -257,7 +328,7 @@ const isSearchResult = (provider: BackendProvider): provider is BackendProviderS
 
 // Helper function to map backend provider to frontend format
 const mapBackendProvider = (backendProvider: BackendProvider): Provider => {
-  let primaryClinic: { name: string; city: string; state: string; accepts_medicaid: boolean; accepts_medicare: boolean; } | null;
+  let primaryClinic: { id: number; name: string; city: string; state: string; accepts_medicaid: boolean; accepts_medicare: boolean; } | null;
   let specialty: string;
   let languages: string[];
   let profilePicture: string | null = null;
@@ -267,6 +338,7 @@ const mapBackendProvider = (backendProvider: BackendProvider): Provider => {
     // Search endpoint format (ProviderSerializer)
     const clinicAffiliation = backendProvider.clinics_info.find(c => c.is_primary) || backendProvider.clinics_info[0];
     primaryClinic = clinicAffiliation ? {
+      id: clinicAffiliation.clinic.id,
       name: clinicAffiliation.clinic.name,
       city: clinicAffiliation.clinic.city,
       state: clinicAffiliation.clinic.state,
@@ -311,6 +383,7 @@ const mapBackendProvider = (backendProvider: BackendProvider): Provider => {
     acceptingNew: backendProvider.accepting_new_patients,
     videoVisit: backendProvider.video_visit_available,
     profilePicture,
+    clinicId: primaryClinic?.id,
   };
 };
 
@@ -386,12 +459,21 @@ export const fetchProviderDashboardStats = createAsyncThunk(
     try {
       const state = getState() as any;
       const token = state.auth.token;
-      const response = await axios.get(`${API_URL}/providers/dashboard/stats/`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      return response.data;
+      const headers = { Authorization: `Token ${token}` };
+      const [statsRes, todayRes] = await Promise.all([
+        axios.get(`${API_URL}/appointments/appointments/statistics/`, { headers }),
+        axios.get(`${API_URL}/appointments/appointments/today/`, { headers }),
+      ]);
+      const stats = statsRes.data;
+      const todayAppointments = Array.isArray(todayRes.data) ? todayRes.data : (todayRes.data.results || []);
+      return {
+        totalPatients: stats.total || 0,
+        appointmentsToday: todayAppointments.length,
+        upcomingAppointments: stats.upcoming || 0,
+        completedAppointments: stats.completed || 0,
+        averageRating: 0,
+        totalReviews: 0,
+      } as ProviderStats;
     } catch (error: any) {
       console.error('Failed to fetch provider dashboard stats:', error);
       return rejectWithValue(error.response?.data?.error || 'Failed to fetch dashboard stats');
@@ -406,12 +488,23 @@ export const fetchProviderAppointments = createAsyncThunk(
     try {
       const state = getState() as any;
       const token = state.auth.token;
-      const response = await axios.get(`${API_URL}/appointments/provider/`, {
+      const response = await axios.get(`${API_URL}/appointments/appointments/`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Token ${token}`,
         },
       });
-      return response.data.results || response.data;
+      const raw = response.data.results || response.data;
+      return raw.map((apt: any) => ({
+        id: apt.id,
+        patientName: apt.patient_info?.full_name || 'Unknown',
+        patientAge: apt.patient_info?.age || 0,
+        appointmentDate: apt.appointment_date,
+        appointmentTime: apt.appointment_time,
+        appointmentType: apt.appointment_type,
+        status: apt.status,
+        symptoms: apt.reason,
+        notes: apt.provider_notes,
+      })) as Appointment[];
     } catch (error: any) {
       console.error('Failed to fetch provider appointments:', error);
       return rejectWithValue(error.response?.data?.error || 'Failed to fetch appointments');
@@ -426,19 +519,122 @@ export const updateAppointmentStatus = createAsyncThunk(
     try {
       const state = getState() as any;
       const token = state.auth.token;
-      const response = await axios.patch(
-        `${API_URL}/appointments/${appointmentId}/`,
+      await axios.patch(
+        `${API_URL}/appointments/appointments/${appointmentId}/`,
         { status },
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Token ${token}`,
           },
         }
       );
-      return response.data;
+      return { id: appointmentId, status };
     } catch (error: any) {
       console.error('Failed to update appointment status:', error);
       return rejectWithValue(error.response?.data?.error || 'Failed to update appointment');
+    }
+  }
+);
+
+// Async thunk for fetching provider availability
+export const fetchAvailability = createAsyncThunk(
+  'provider/fetchAvailability',
+  async (_, { rejectWithValue, getState }) => {
+    try {
+      const state = getState() as any;
+      const token = state.auth.token;
+      const response = await axios.get(`${API_URL}/providers/availability/`, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      return (response.data.results || response.data) as AvailabilitySlot[];
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch availability');
+    }
+  }
+);
+
+// Async thunk for creating availability slot
+export const createAvailability = createAsyncThunk(
+  'provider/createAvailability',
+  async ({ day_of_week, start_time, end_time }: { day_of_week: number; start_time: string; end_time: string }, { rejectWithValue, getState }) => {
+    try {
+      const state = getState() as any;
+      const token = state.auth.token;
+      const response = await axios.post(`${API_URL}/providers/availability/`, {
+        day_of_week,
+        start_time,
+        end_time,
+        is_active: true,
+      }, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      return response.data as AvailabilitySlot;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || error.response?.data || 'Failed to create availability');
+    }
+  }
+);
+
+// Async thunk for deleting availability slot
+export const deleteAvailability = createAsyncThunk(
+  'provider/deleteAvailability',
+  async (slotId: number, { rejectWithValue, getState }) => {
+    try {
+      const state = getState() as any;
+      const token = state.auth.token;
+      await axios.delete(`${API_URL}/providers/availability/${slotId}/`, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      return slotId;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to delete availability');
+    }
+  }
+);
+
+// Async thunk for fetching all specialties
+export const fetchSpecialties = createAsyncThunk(
+  'provider/fetchSpecialties',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${API_URL}/providers/specialties/`);
+      return (Array.isArray(response.data) ? response.data : response.data.results || []) as SpecialtyItem[];
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch specialties');
+    }
+  }
+);
+
+// Async thunk for fetching own provider profile
+export const fetchOwnProfile = createAsyncThunk(
+  'provider/fetchOwnProfile',
+  async (_, { rejectWithValue, getState }) => {
+    try {
+      const state = getState() as any;
+      const token = state.auth.token;
+      const response = await axios.get<ProviderProfile>(`${API_URL}/providers/providers/me/`, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch profile');
+    }
+  }
+);
+
+// Async thunk for updating own provider profile
+export const updateOwnProfile = createAsyncThunk(
+  'provider/updateOwnProfile',
+  async ({ id, data }: { id: number; data: Record<string, any> }, { rejectWithValue, getState }) => {
+    try {
+      const state = getState() as any;
+      const token = state.auth.token;
+      const response = await axios.patch<ProviderProfile>(`${API_URL}/providers/providers/${id}/`, data, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || error.response?.data || 'Failed to update profile');
     }
   }
 );
@@ -613,8 +809,52 @@ const providerSlice = createSlice({
       .addCase(updateAppointmentStatus.fulfilled, (state, action) => {
         const index = state.appointments.findIndex(apt => apt.id === action.payload.id);
         if (index !== -1) {
-          state.appointments[index] = action.payload;
+          state.appointments[index].status = action.payload.status as Appointment['status'];
         }
+      })
+      // Availability
+      .addCase(fetchAvailability.pending, (state) => {
+        state.availabilityLoading = true;
+      })
+      .addCase(fetchAvailability.fulfilled, (state, action) => {
+        state.availabilityLoading = false;
+        state.availability = action.payload;
+      })
+      .addCase(fetchAvailability.rejected, (state) => {
+        state.availabilityLoading = false;
+      })
+      .addCase(createAvailability.fulfilled, (state, action) => {
+        state.availability.push(action.payload);
+      })
+      .addCase(deleteAvailability.fulfilled, (state, action) => {
+        state.availability = state.availability.filter(slot => slot.id !== action.payload);
+      })
+      // Specialties
+      .addCase(fetchSpecialties.pending, (state) => {
+        state.specialtiesLoading = true;
+      })
+      .addCase(fetchSpecialties.fulfilled, (state, action) => {
+        state.specialtiesLoading = false;
+        state.allSpecialties = action.payload;
+      })
+      .addCase(fetchSpecialties.rejected, (state) => {
+        state.specialtiesLoading = false;
+      })
+      // Own Profile
+      .addCase(fetchOwnProfile.pending, (state) => {
+        state.profileLoading = true;
+        state.profileError = null;
+      })
+      .addCase(fetchOwnProfile.fulfilled, (state, action) => {
+        state.profileLoading = false;
+        state.ownProfile = action.payload;
+      })
+      .addCase(fetchOwnProfile.rejected, (state, action) => {
+        state.profileLoading = false;
+        state.profileError = action.payload as string;
+      })
+      .addCase(updateOwnProfile.fulfilled, (state, action) => {
+        state.ownProfile = action.payload;
       });
   },
 });

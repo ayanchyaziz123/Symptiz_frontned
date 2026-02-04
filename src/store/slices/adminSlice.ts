@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const API_URL = 'http://127.0.0.1:8000/api';
+const API_URL = 'http://18.222.222.50:8000/api';
 
 // Types
 interface AdminStats {
@@ -58,7 +58,7 @@ export const fetchAdminStats = createAsyncThunk(
       const token = state.auth.token;
       const response = await axios.get(`${API_URL}/admin/stats/`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Token ${token}`,
         },
       });
       return response.data;
@@ -76,7 +76,7 @@ export const fetchPendingProviders = createAsyncThunk(
       const token = state.auth.token;
       const response = await axios.get(`${API_URL}/providers/providers/?is_verified=false`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Token ${token}`,
         },
       });
       return response.data.results || response.data;
@@ -97,7 +97,7 @@ export const approveProvider = createAsyncThunk(
         {},
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Token ${token}`,
           },
         }
       );
@@ -119,7 +119,7 @@ export const rejectProvider = createAsyncThunk(
         {},
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Token ${token}`,
           },
         }
       );

@@ -183,12 +183,12 @@ const ConversationalSymptomChecker: React.FC = () => {
           <button
             onClick={handleStartConversation}
             disabled={symptomInput.trim().length < 5 || isLoadingQuestions}
-            className="w-full bg-blue-600 text-white py-3 sm:py-3.5 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 flex items-center justify-center text-sm sm:text-base shadow-sm"
+            className="w-full bg-blue-600 text-white py-2 sm:py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 flex items-center justify-center text-xs sm:text-sm shadow-sm"
           >
             {isLoadingQuestions ? (
               <>
                 <svg
-                  className="animate-spin -ml-1 mr-2 sm:mr-3 h-4 sm:h-5 w-4 sm:w-5 text-white"
+                  className="animate-spin -ml-1 mr-2 h-3.5 w-3.5 text-white"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -207,12 +207,12 @@ const ConversationalSymptomChecker: React.FC = () => {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                Preparing questions...
+                Preparing...
               </>
             ) : (
               <>
                 Start Assessment
-                <ArrowRight className="w-4 sm:w-5 h-4 sm:h-5 ml-2" />
+                <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
               </>
             )}
           </button>
@@ -243,21 +243,21 @@ const ConversationalSymptomChecker: React.FC = () => {
           <div className="flex gap-2 pt-4">
             <button
               onClick={handleRestart}
-              className="flex-1 bg-white border-2 border-gray-300 text-gray-700 py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-gray-50 transition text-sm sm:text-base flex items-center justify-center"
+              className="flex-1 bg-white border-2 border-gray-300 text-gray-700 py-1.5 sm:py-2 rounded-lg font-semibold hover:bg-gray-50 transition text-xs sm:text-sm flex items-center justify-center"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
               Start Over
             </button>
 
             <button
               onClick={handleNextStep}
               disabled={!allQuestionsAnswered || isLoadingQuestions}
-              className="flex-1 bg-blue-600 text-white py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 text-sm sm:text-base shadow-sm flex items-center justify-center"
+              className="flex-1 bg-blue-600 text-white py-1.5 sm:py-2 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 text-xs sm:text-sm shadow-sm flex items-center justify-center"
             >
               {isLoadingQuestions ? (
                 <>
                   <svg
-                    className="animate-spin -ml-1 mr-2 h-4 sm:h-5 w-4 sm:w-5 text-white"
+                    className="animate-spin -ml-1 mr-1.5 h-3.5 w-3.5 text-white"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -280,13 +280,13 @@ const ConversationalSymptomChecker: React.FC = () => {
                 </>
               ) : currentStep >= 3 ? (
                 <>
-                  <Stethoscope className="w-4 h-4 mr-2" />
+                  <Stethoscope className="w-3.5 h-3.5 mr-1.5" />
                   Get Analysis
                 </>
               ) : (
                 <>
                   Continue
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                  <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                 </>
               )}
             </button>

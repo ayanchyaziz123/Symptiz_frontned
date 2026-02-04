@@ -17,6 +17,8 @@ import BookAppointmentPage from './pages/patient/BookAppointmentPage';
 // Provider pages
 import ProviderRegisterPage from './pages/provider/ProviderRegisterPage';
 import ProviderDashboardPage from './pages/provider/ProviderDashboardPage';
+import ProviderAvailabilityPage from './pages/provider/ProviderAvailabilityPage';
+import ProviderSettingsPage from './pages/provider/ProviderSettingsPage';
 
 // Admin pages
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
@@ -168,6 +170,22 @@ const AppContent: React.FC = () => {
               element={
                 <RoleProtectedRoute allowedRoles={['provider']}>
                   <ProviderDashboardPage />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/provider/availability"
+              element={
+                <RoleProtectedRoute allowedRoles={['provider']}>
+                  <ProviderAvailabilityPage />
+                </RoleProtectedRoute>
+              }
+            />
+            <Route
+              path="/provider/settings"
+              element={
+                <RoleProtectedRoute allowedRoles={['provider']}>
+                  <ProviderSettingsPage />
                 </RoleProtectedRoute>
               }
             />

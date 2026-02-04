@@ -140,67 +140,67 @@ const LoginPage: React.FC = () => {
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-5">
+        <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5">Email Address</label>
             <div
-              className={`flex items-center border rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition ${
+              className={`flex items-center border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition ${
                 validationErrors.email
                   ? 'border-red-300 focus-within:ring-red-200 focus-within:border-red-500'
                   : 'border-gray-300'
               }`}
             >
-              <Mail className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
+              <Mail className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 placeholder="email@example.com"
-                className="w-full focus:outline-none text-gray-900 placeholder-gray-400"
+                className="w-full focus:outline-none text-gray-900 placeholder-gray-400 text-sm"
               />
             </div>
             {validationErrors.email && (
-              <p className="text-red-600 text-sm mt-1.5 flex items-center gap-1">
-                <AlertCircle className="w-3.5 h-3.5" />
+              <p className="text-red-600 text-xs mt-1 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
                 {validationErrors.email}
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5">Password</label>
             <div
-              className={`flex items-center border rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition ${
+              className={`flex items-center border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition ${
                 validationErrors.password
                   ? 'border-red-300 focus-within:ring-red-200 focus-within:border-red-500'
                   : 'border-gray-300'
               }`}
             >
-              <Lock className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
+              <Lock className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
                 placeholder="Enter your password"
-                className="w-full focus:outline-none text-gray-900 placeholder-gray-400"
+                className="w-full focus:outline-none text-gray-900 placeholder-gray-400 text-sm"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="ml-2 text-gray-400 hover:text-gray-600 transition"
               >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
             {validationErrors.password && (
-              <p className="text-red-600 text-sm mt-1.5 flex items-center gap-1">
-                <AlertCircle className="w-3.5 h-3.5" />
+              <p className="text-red-600 text-xs mt-1 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
                 {validationErrors.password}
               </p>
             )}
           </div>
 
-          <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center justify-between text-xs">
             <Link
               to="/forgot-password"
               className="text-blue-600 hover:text-blue-700 font-medium transition"
@@ -218,12 +218,12 @@ const LoginPage: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 shadow-sm"
+            className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 shadow-sm text-sm"
           >
             {loading ? (
               <>
                 <svg
-                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"

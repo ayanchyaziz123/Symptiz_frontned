@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const API_URL = 'http://127.0.0.1:8000/api/symptoms/checks';
+const API_URL = 'http://18.222.222.50:8000/api/symptoms/checks';
 
 export interface SymptomAnalysis {
   urgency: string;

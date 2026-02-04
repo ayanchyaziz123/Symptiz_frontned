@@ -13,6 +13,7 @@ export interface Provider {
     acceptingNew: boolean;
     videoVisit: boolean;
     profilePicture?: string | null;
+    clinicId?: number;
   }
   
   export interface UrgencyResult {

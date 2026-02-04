@@ -108,30 +108,30 @@ const RegisterPage: React.FC = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           {/* First Name & Last Name */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">First Name</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">First Name</label>
               <div
-                className={`flex items-center border rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition ${
+                className={`flex items-center border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition ${
                   hasFieldError('first_name')
                     ? 'border-red-300 focus-within:ring-red-200 focus-within:border-red-500'
                     : 'border-gray-300'
                 }`}
               >
-                <UserCircle className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
+                <UserCircle className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
                 <input
                   name="first_name"
                   placeholder="John"
                   required
                   value={formData.first_name}
                   onChange={handleChange}
-                  className="w-full focus:outline-none text-gray-900 placeholder-gray-400"
+                  className="w-full focus:outline-none text-gray-900 placeholder-gray-400 text-sm"
                 />
               </div>
               {getFieldError('first_name') && (
-                <p className="text-red-600 text-xs mt-1.5 flex items-center gap-1">
+                <p className="text-red-600 text-xs mt-1 flex items-center gap-1">
                   <AlertCircle className="w-3 h-3" />
                   {getFieldError('first_name')}
                 </p>
@@ -139,26 +139,26 @@ const RegisterPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Last Name</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Last Name</label>
               <div
-                className={`flex items-center border rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition ${
+                className={`flex items-center border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition ${
                   hasFieldError('last_name')
                     ? 'border-red-300 focus-within:ring-red-200 focus-within:border-red-500'
                     : 'border-gray-300'
                 }`}
               >
-                <UserCircle className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
+                <UserCircle className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
                 <input
                   name="last_name"
                   placeholder="Doe"
                   required
                   value={formData.last_name}
                   onChange={handleChange}
-                  className="w-full focus:outline-none text-gray-900 placeholder-gray-400"
+                  className="w-full focus:outline-none text-gray-900 placeholder-gray-400 text-sm"
                 />
               </div>
               {getFieldError('last_name') && (
-                <p className="text-red-600 text-xs mt-1.5 flex items-center gap-1">
+                <p className="text-red-600 text-xs mt-1 flex items-center gap-1">
                   <AlertCircle className="w-3 h-3" />
                   {getFieldError('last_name')}
                 </p>
@@ -168,21 +168,21 @@ const RegisterPage: React.FC = () => {
 
           {/* Sex */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Sex</label>
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5">Sex</label>
             <div
-              className={`flex items-center border rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition ${
+              className={`flex items-center border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition ${
                 hasFieldError('sex')
                   ? 'border-red-300 focus-within:ring-red-200 focus-within:border-red-500'
                   : 'border-gray-300'
               }`}
             >
-              <UserCircle className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
+              <UserCircle className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
               <select
                 name="sex"
                 required
                 value={formData.sex}
                 onChange={handleChange}
-                className="w-full focus:outline-none text-gray-900 bg-transparent"
+                className="w-full focus:outline-none text-gray-900 bg-transparent text-sm"
               >
                 <option value="">Select sex</option>
                 <option value="male">Male</option>
@@ -191,8 +191,8 @@ const RegisterPage: React.FC = () => {
               </select>
             </div>
             {getFieldError('sex') && (
-              <p className="text-red-600 text-sm mt-1.5 flex items-center gap-1">
-                <AlertCircle className="w-3.5 h-3.5" />
+              <p className="text-red-600 text-xs mt-1 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
                 {getFieldError('sex')}
               </p>
             )}
@@ -200,15 +200,15 @@ const RegisterPage: React.FC = () => {
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5">Email Address</label>
             <div
-              className={`flex items-center border rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition ${
+              className={`flex items-center border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition ${
                 hasFieldError('email')
                   ? 'border-red-300 focus-within:ring-red-200 focus-within:border-red-500'
                   : 'border-gray-300'
               }`}
             >
-              <Mail className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
+              <Mail className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
               <input
                 name="email"
                 type="email"
@@ -216,12 +216,12 @@ const RegisterPage: React.FC = () => {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full focus:outline-none text-gray-900 placeholder-gray-400"
+                className="w-full focus:outline-none text-gray-900 placeholder-gray-400 text-sm"
               />
             </div>
             {getFieldError('email') && (
-              <p className="text-red-600 text-sm mt-1.5 flex items-center gap-1">
-                <AlertCircle className="w-3.5 h-3.5" />
+              <p className="text-red-600 text-xs mt-1 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
                 {getFieldError('email')}
               </p>
             )}
@@ -229,15 +229,15 @@ const RegisterPage: React.FC = () => {
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5">Password</label>
             <div
-              className={`flex items-center border rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition ${
+              className={`flex items-center border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition ${
                 hasFieldError('password')
                   ? 'border-red-300 focus-within:ring-red-200 focus-within:border-red-500'
                   : 'border-gray-300'
               }`}
             >
-              <Lock className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
+              <Lock className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
               <input
                 name="password"
                 type={showPassword ? 'text' : 'password'}
@@ -245,19 +245,19 @@ const RegisterPage: React.FC = () => {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full focus:outline-none text-gray-900 placeholder-gray-400"
+                className="w-full focus:outline-none text-gray-900 placeholder-gray-400 text-sm"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="ml-2 text-gray-400 hover:text-gray-600 transition"
               >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
             {getFieldError('password') && (
-              <p className="text-red-600 text-sm mt-1.5 flex items-center gap-1">
-                <AlertCircle className="w-3.5 h-3.5" />
+              <p className="text-red-600 text-xs mt-1 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
                 {getFieldError('password')}
               </p>
             )}
@@ -265,15 +265,15 @@ const RegisterPage: React.FC = () => {
 
           {/* Confirm Password */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Confirm Password</label>
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5">Confirm Password</label>
             <div
-              className={`flex items-center border rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition ${
+              className={`flex items-center border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition ${
                 hasFieldError('confirm_password')
                   ? 'border-red-300 focus-within:ring-red-200 focus-within:border-red-500'
                   : 'border-gray-300'
               }`}
             >
-              <Lock className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
+              <Lock className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
               <input
                 name="confirm_password"
                 type={showConfirmPassword ? 'text' : 'password'}
@@ -281,19 +281,19 @@ const RegisterPage: React.FC = () => {
                 required
                 value={formData.confirm_password}
                 onChange={handleChange}
-                className="w-full focus:outline-none text-gray-900 placeholder-gray-400"
+                className="w-full focus:outline-none text-gray-900 placeholder-gray-400 text-sm"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="ml-2 text-gray-400 hover:text-gray-600 transition"
               >
-                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
             {getFieldError('confirm_password') && (
-              <p className="text-red-600 text-sm mt-1.5 flex items-center gap-1">
-                <AlertCircle className="w-3.5 h-3.5" />
+              <p className="text-red-600 text-xs mt-1 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
                 {getFieldError('confirm_password')}
               </p>
             )}
@@ -302,12 +302,12 @@ const RegisterPage: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 shadow-sm mt-6"
+            className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 shadow-sm mt-4 text-sm"
           >
             {loading ? (
               <>
                 <svg
-                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"

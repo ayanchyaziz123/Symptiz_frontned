@@ -156,9 +156,9 @@ const VerifyOTPPage: React.FC = () => {
             ✓ OTP verified successfully! Redirecting to login...
           </div>
         ) : (
-          <form onSubmit={handleVerify} className="space-y-6">
+          <form onSubmit={handleVerify} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3 text-center">
+              <label className="block text-xs font-medium text-gray-700 mb-2 text-center">
                 Enter OTP
               </label>
               <div className="flex justify-center gap-2">
@@ -175,7 +175,7 @@ const VerifyOTPPage: React.FC = () => {
                     onChange={(e) => handleChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
                     onPaste={index === 0 ? handlePaste : undefined}
-                    className="w-12 h-14 text-center text-2xl font-semibold border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+                    className="w-10 h-12 text-center text-lg font-semibold border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
                   />
                 ))}
               </div>
@@ -184,12 +184,12 @@ const VerifyOTPPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading || otp.join('').length !== 6}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 shadow-sm"
+              className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 shadow-sm text-sm"
             >
               {loading ? (
               <>
                 <svg
-                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"

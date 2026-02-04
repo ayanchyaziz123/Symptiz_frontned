@@ -116,14 +116,14 @@ const SettingsPage: React.FC = () => {
         {/* Save Status Banner */}
         {saveStatus === 'success' && (
           <div className="bg-green-50 border border-green-200 text-green-700 rounded-lg p-4 mb-6 flex items-center">
-            <CheckCircle className="w-5 h-5 mr-2 flex-shrink-0" />
+            <CheckCircle className="w-4 h-4 mr-2 flex-shrink-0" />
             <span className="text-sm font-medium">Settings saved successfully!</span>
           </div>
         )}
 
         {saveStatus === 'error' && (
           <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mb-6 flex items-center">
-            <AlertCircle className="w-5 h-5 mr-2 flex-shrink-0" />
+            <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
             <span className="text-sm font-medium">Failed to save settings. Please try again.</span>
           </div>
         )}
@@ -199,7 +199,7 @@ const SettingsPage: React.FC = () => {
                       </h3>
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                             First Name
                           </label>
                           <input
@@ -207,11 +207,11 @@ const SettingsPage: React.FC = () => {
                             name="firstName"
                             value={profileData.firstName}
                             onChange={handleProfileChange}
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                             Last Name
                           </label>
                           <input
@@ -219,11 +219,11 @@ const SettingsPage: React.FC = () => {
                             name="lastName"
                             value={profileData.lastName}
                             onChange={handleProfileChange}
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                             Date of Birth
                           </label>
                           <input
@@ -231,18 +231,18 @@ const SettingsPage: React.FC = () => {
                             name="dateOfBirth"
                             value={profileData.dateOfBirth}
                             onChange={handleProfileChange}
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                             Gender
                           </label>
                           <select
                             name="gender"
                             value={profileData.gender}
                             onChange={handleProfileChange}
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           >
                             <option value="">Select gender</option>
                             <option value="male">Male</option>
@@ -261,11 +261,11 @@ const SettingsPage: React.FC = () => {
                       </h3>
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                             Email Address
                           </label>
-                          <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
-                            <Mail className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
+                          <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
+                            <Mail className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
                             <input
                               type="email"
                               name="email"
@@ -276,11 +276,11 @@ const SettingsPage: React.FC = () => {
                           </div>
                         </div>
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                             Phone Number
                           </label>
-                          <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
-                            <Phone className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
+                          <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
+                            <Phone className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
                             <input
                               type="tel"
                               name="phone"
@@ -300,7 +300,7 @@ const SettingsPage: React.FC = () => {
                       </h3>
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                             Street Address
                           </label>
                           <input
@@ -309,12 +309,12 @@ const SettingsPage: React.FC = () => {
                             value={profileData.address}
                             onChange={handleProfileChange}
                             placeholder="123 Main Street"
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           />
                         </div>
                         <div className="grid md:grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                               City
                             </label>
                             <input
@@ -322,11 +322,11 @@ const SettingsPage: React.FC = () => {
                               name="city"
                               value={profileData.city}
                               onChange={handleProfileChange}
-                              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                               ZIP Code
                             </label>
                             <input
@@ -334,7 +334,7 @@ const SettingsPage: React.FC = () => {
                               name="zipCode"
                               value={profileData.zipCode}
                               onChange={handleProfileChange}
-                              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             />
                           </div>
                         </div>
@@ -365,11 +365,11 @@ const SettingsPage: React.FC = () => {
                       </h3>
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                             Current Password
                           </label>
-                          <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
-                            <Lock className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
+                          <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
+                            <Lock className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
                             <input
                               type={showPasswords.current ? 'text' : 'password'}
                               name="currentPassword"
@@ -393,11 +393,11 @@ const SettingsPage: React.FC = () => {
                           </div>
                         </div>
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                             New Password
                           </label>
-                          <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
-                            <Lock className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
+                          <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
+                            <Lock className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
                             <input
                               type={showPasswords.new ? 'text' : 'password'}
                               name="newPassword"
@@ -421,11 +421,11 @@ const SettingsPage: React.FC = () => {
                           </div>
                         </div>
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                             Confirm New Password
                           </label>
-                          <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
-                            <Lock className="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" />
+                          <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
+                            <Lock className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
                             <input
                               type={showPasswords.confirm ? 'text' : 'password'}
                               name="confirmPassword"
@@ -542,14 +542,14 @@ const SettingsPage: React.FC = () => {
 
                   <div className="space-y-6">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                         Language
                       </label>
                       <select
                         name="language"
                         value={preferences.language}
                         onChange={handlePreferenceChange}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         <option value="en">English</option>
                         <option value="es">Español</option>
@@ -559,14 +559,14 @@ const SettingsPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                         Time Zone
                       </label>
                       <select
                         name="timezone"
                         value={preferences.timezone}
                         onChange={handlePreferenceChange}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         <option value="UTC-8">Pacific Time (UTC-8)</option>
                         <option value="UTC-7">Mountain Time (UTC-7)</option>
@@ -576,7 +576,7 @@ const SettingsPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Theme</label>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">Theme</label>
                       <div className="grid grid-cols-3 gap-3">
                         {['light', 'dark', 'auto'].map((theme) => (
                           <button
@@ -596,14 +596,14 @@ const SettingsPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                         Date Format
                       </label>
                       <select
                         name="dateFormat"
                         value={preferences.dateFormat}
                         onChange={handlePreferenceChange}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         <option value="MM/DD/YYYY">MM/DD/YYYY</option>
                         <option value="DD/MM/YYYY">DD/MM/YYYY</option>
@@ -619,12 +619,12 @@ const SettingsPage: React.FC = () => {
                 <button
                   onClick={handleSave}
                   disabled={saveStatus === 'saving'}
-                  className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-sm"
                 >
                   {saveStatus === 'saving' ? (
                     <>
                       <svg
-                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                        className="animate-spin -ml-1 mr-3 h-4 w-4 text-white"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
@@ -647,7 +647,7 @@ const SettingsPage: React.FC = () => {
                     </>
                   ) : (
                     <>
-                      <Save className="w-5 h-5 mr-2" />
+                      <Save className="w-4 h-4 mr-2" />
                       Save Changes
                     </>
                   )}

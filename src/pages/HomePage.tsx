@@ -14,18 +14,11 @@ import {
   Stethoscope,
   CheckCircle,
   FileText,
-  X,
-  SlidersHorizontal,
 } from 'lucide-react';
 import ConversationalSymptomChecker from '../components/ConversationalSymptomChecker';
 import {
   setSearchLocation,
   filterProvidersBySpecialty,
-  setFilterAcceptingNew,
-  setFilterVideoVisit,
-  setFilterMinRating,
-  sortProviders,
-  resetProviderFilters,
   fetchProviders,
   fetchCities,
 } from '../store/slices/providerSlice';
@@ -53,13 +46,8 @@ const HomePage: React.FC = () => {
   const [showSuggestions, setShowSuggestions] = React.useState(false);
   const [filteredCities, setFilteredCities] = React.useState<string[]>([]);
 
-  // Local state for filters
-  const [showFilters, setShowFilters] = React.useState(false);
+  // Local state for specialty filter
   const [selectedSpecialty, setSelectedSpecialty] = React.useState<string>('');
-  const [selectedRating, setSelectedRating] = React.useState<number>(0);
-  const [acceptingNewOnly, setAcceptingNewOnly] = React.useState(false);
-  const [videoVisitOnly, setVideoVisitOnly] = React.useState(false);
-  const [selectedSort, setSelectedSort] = React.useState<string>('');
 
   // Fetch Providers and cities from backend on component mount
   useEffect(() => {
@@ -135,39 +123,9 @@ const HomePage: React.FC = () => {
     dispatch(setSearchLocation(location));
   };
 
-  // Filter handlers
   const handleSpecialtyChange = (specialty: string) => {
     setSelectedSpecialty(specialty);
     dispatch(filterProvidersBySpecialty(specialty || null));
-  };
-
-  const handleRatingChange = (rating: number) => {
-    setSelectedRating(rating);
-    dispatch(setFilterMinRating(rating));
-  };
-
-  const handleAcceptingNewChange = (value: boolean) => {
-    setAcceptingNewOnly(value);
-    dispatch(setFilterAcceptingNew(value));
-  };
-
-  const handleVideoVisitChange = (value: boolean) => {
-    setVideoVisitOnly(value);
-    dispatch(setFilterVideoVisit(value));
-  };
-
-  const handleSortChange = (sort: string) => {
-    setSelectedSort(sort);
-    dispatch(sortProviders(sort ? (sort as 'rating' | 'distance' | 'experience') : null));
-  };
-
-  const handleClearFilters = () => {
-    setSelectedSpecialty('');
-    setSelectedRating(0);
-    setAcceptingNewOnly(false);
-    setVideoVisitOnly(false);
-    setSelectedSort('');
-    dispatch(resetProviderFilters());
   };
 
   const getUrgencyColor = (urgency: string) => {
@@ -460,23 +418,23 @@ const HomePage: React.FC = () => {
                                   </div>
                                 </div>
 
-                                <div className="flex gap-2">
+                                <div className="flex gap-1.5 sm:gap-2">
                                   <button
                                     onClick={() => navigate(`/Provider/${Provider.id}`)}
-                                    className="flex-1 bg-white border-2 border-blue-600 text-blue-600 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold hover:bg-blue-50 transition"
+                                    className="bg-white border border-blue-600 text-blue-600 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs font-semibold hover:bg-blue-50 transition"
                                   >
-                                    View Details
+                                    Details
                                   </button>
                                   <button
                                     onClick={() =>
                                       navigate('/book-appointment', {
-                                        state: { Provider, urgencyResult: analysisResult },
+                                        state: { doctor: Provider, urgencyResult: analysisResult },
                                       })
                                     }
-                                    className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold hover:bg-blue-700 transition flex items-center justify-center shadow-sm"
+                                    className="bg-blue-600 text-white px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs font-semibold hover:bg-blue-700 transition flex items-center justify-center shadow-sm"
                                   >
-                                    Book Now
-                                    <ChevronRight className="w-3.5 sm:w-4 h-3.5 sm:h-4 ml-1" />
+                                    Book
+                                    <ChevronRight className="w-3 sm:w-4 h-3 sm:h-4 ml-0.5" />
                                   </button>
                                 </div>
                               </div>
@@ -498,123 +456,11 @@ const HomePage: React.FC = () => {
                   All Healthcare Providers
                 </h2>
 
-                {/* Filter Section */}
-                <div className="mb-4 sm:mb-6">
-                  <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-100 transition text-sm font-medium"
-                  >
-                    <SlidersHorizontal className="w-4 h-4" />
-                    {showFilters ? 'Hide Filters' : 'Show Filters'}
-                    {(selectedSpecialty || selectedRating > 0 || acceptingNewOnly || videoVisitOnly || selectedSort) && (
-                      <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
-                        {[selectedSpecialty, selectedRating > 0, acceptingNewOnly, videoVisitOnly, selectedSort].filter(Boolean).length}
-                      </span>
-                    )}
-                  </button>
-
-                  {showFilters && (
-                    <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                        {/* Specialty Filter */}
-                        <div>
-                          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
-                            Specialty
-                          </label>
-                          <select
-                            value={selectedSpecialty}
-                            onChange={(e) => handleSpecialtyChange(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                          >
-                            <option value="">All Specialties</option>
-                            <option value="Family Medicine">Family Medicine</option>
-                            <option value="Internal Medicine">Internal Medicine</option>
-                            <option value="Pediatrics">Pediatrics</option>
-                            <option value="Cardiology">Cardiology</option>
-                            <option value="Dermatology">Dermatology</option>
-                            <option value="Orthopedics">Orthopedics</option>
-                            <option value="Neurology">Neurology</option>
-                            <option value="Psychiatry">Psychiatry</option>
-                            <option value="Ophthalmology">Ophthalmology</option>
-                            <option value="ENT">ENT</option>
-                          </select>
-                        </div>
-
-                        {/* Rating Filter */}
-                        <div>
-                          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
-                            Minimum Rating
-                          </label>
-                          <select
-                            value={selectedRating}
-                            onChange={(e) => handleRatingChange(Number(e.target.value))}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                          >
-                            <option value="0">Any Rating</option>
-                            <option value="3">3+ Stars</option>
-                            <option value="4">4+ Stars</option>
-                            <option value="4.5">4.5+ Stars</option>
-                          </select>
-                        </div>
-
-                        {/* Sort By */}
-                        <div>
-                          <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
-                            Sort By
-                          </label>
-                          <select
-                            value={selectedSort}
-                            onChange={(e) => handleSortChange(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                          >
-                            <option value="">Default</option>
-                            <option value="rating">Highest Rated</option>
-                            <option value="experience">Most Experienced</option>
-                            <option value="distance">Nearest</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Checkbox Filters */}
-                      <div className="flex flex-wrap gap-3 sm:gap-4 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={acceptingNewOnly}
-                            onChange={(e) => handleAcceptingNewChange(e.target.checked)}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                          <span className="text-xs sm:text-sm text-gray-700">Accepting New Patients</span>
-                        </label>
-
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={videoVisitOnly}
-                            onChange={(e) => handleVideoVisitChange(e.target.checked)}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                          <span className="text-xs sm:text-sm text-gray-700">Video Visit Available</span>
-                        </label>
-
-                        {(selectedSpecialty || selectedRating > 0 || acceptingNewOnly || videoVisitOnly || selectedSort) && (
-                          <button
-                            onClick={handleClearFilters}
-                            className="ml-auto flex items-center gap-1 text-xs sm:text-sm text-red-600 hover:text-red-700 font-medium"
-                          >
-                            <X className="w-4 h-4" />
-                            Clear All Filters
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                  <div className="flex items-center gap-2 flex-1 sm:flex-initial relative">
-                    <MapPin className="w-4 sm:w-5 h-4 sm:h-5 text-gray-600" />
-                    <div className="relative flex-1 sm:flex-initial">
+                <div className="space-y-2 sm:space-y-0 sm:flex sm:items-center sm:justify-center sm:gap-3 mb-3 sm:mb-4">
+                  {/* Location Input Row */}
+                  <div className="relative">
+                    <div className="flex items-center">
+                      <MapPin className="w-4 h-4 text-gray-400 absolute left-3 pointer-events-none" />
                       <input
                         type="text"
                         value={searchLocation}
@@ -631,37 +477,58 @@ const HomePage: React.FC = () => {
                             setShowSuggestions(false);
                           }
                         }}
-                        className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
+                        className="w-full sm:w-48 pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs"
                         placeholder="Enter city or state"
                       />
-
-                      {/* Suggestions Dropdown */}
-                      {showSuggestions && filteredCities.length > 0 && (
-                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                          {filteredCities.map((city, index) => (
-                            <button
-                              key={index}
-                              onClick={() => handleCitySelect(city)}
-                              className="w-full text-left px-4 py-2 hover:bg-blue-50 text-sm text-gray-700 hover:text-blue-700 transition flex items-center gap-2"
-                            >
-                              <MapPin className="w-3 h-3 text-gray-400" />
-                              {city}
-                            </button>
-                          ))}
-                        </div>
-                      )}
                     </div>
+
+                    {/* Suggestions Dropdown */}
+                    {showSuggestions && filteredCities.length > 0 && (
+                      <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                        {filteredCities.map((city, index) => (
+                          <button
+                            key={index}
+                            onClick={() => handleCitySelect(city)}
+                            className="w-full text-left px-4 py-2 hover:bg-blue-50 text-xs text-gray-700 hover:text-blue-700 transition flex items-center gap-2"
+                          >
+                            <MapPin className="w-3 h-3 text-gray-400" />
+                            {city}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <button
-                    onClick={handleLocationSearch}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center text-xs sm:text-sm shadow-sm"
-                  >
-                    <Search className="w-4 h-4 mr-1 sm:mr-2" />
-                    Search
-                  </button>
+
+                  {/* Search Button & Specialty Select Row */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleLocationSearch}
+                      className="flex-1 sm:flex-none bg-blue-600 text-white px-3 py-2 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center text-xs shadow-sm"
+                    >
+                      <Search className="w-3.5 h-3.5 mr-1" />
+                      Search
+                    </button>
+                    <select
+                      value={selectedSpecialty}
+                      onChange={(e) => handleSpecialtyChange(e.target.value)}
+                      className="flex-1 sm:flex-none px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs bg-white"
+                    >
+                      <option value="">All Specialties</option>
+                      <option value="Family Medicine">Family Medicine</option>
+                      <option value="Internal Medicine">Internal Medicine</option>
+                      <option value="Pediatrics">Pediatrics</option>
+                      <option value="Cardiology">Cardiology</option>
+                      <option value="Dermatology">Dermatology</option>
+                      <option value="Orthopedics">Orthopedics</option>
+                      <option value="Neurology">Neurology</option>
+                      <option value="Psychiatry">Psychiatry</option>
+                      <option value="Ophthalmology">Ophthalmology</option>
+                      <option value="ENT">ENT</option>
+                    </select>
+                  </div>
                 </div>
                 <p className="text-gray-600 text-xs sm:text-sm">
-                  <strong>{allProviders.length} providers</strong> available
+                  <strong>{filteredProviders.length}</strong> {selectedSpecialty ? `${selectedSpecialty} ` : ''}providers available
                 </p>
               </div>
 
@@ -686,7 +553,7 @@ const HomePage: React.FC = () => {
                       <p className="text-xs text-red-700">{ProvidersError}</p>
                       <button
                         onClick={() => dispatch(fetchProviders())}
-                        className="mt-3 bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-red-700 transition"
+                        className="mt-2 bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-700 transition"
                       >
                         Try Again
                       </button>
@@ -696,13 +563,13 @@ const HomePage: React.FC = () => {
               )}
 
               {/* Empty State */}
-              {!ProvidersLoading && !ProvidersError && allProviders.length === 0 && (
+              {!ProvidersLoading && !ProvidersError && filteredProviders.length === 0 && (
                 <div className="text-center py-12">
                   <User className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-600 text-sm">No Providers available at the moment.</p>
                   <button
                     onClick={() => dispatch(fetchProviders())}
-                    className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition"
+                    className="mt-3 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-700 transition"
                   >
                     Refresh
                   </button>
@@ -710,9 +577,9 @@ const HomePage: React.FC = () => {
               )}
 
               {/* Provider Cards */}
-              {!ProvidersLoading && allProviders.length > 0 && (
+              {!ProvidersLoading && filteredProviders.length > 0 && (
               <div className="space-y-3 sm:space-y-4">
-                {allProviders.map((Provider) => (
+                {filteredProviders.map((Provider) => (
                   <div
                     key={Provider.id}
                     className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 hover:border-gray-300 hover:shadow-md transition"
@@ -789,28 +656,28 @@ const HomePage: React.FC = () => {
                           </div>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-2 sm:pt-3 border-t border-gray-100">
+                        <div className="flex items-center justify-between gap-2 pt-2 sm:pt-3 border-t border-gray-100">
                           <div className="text-xs hidden sm:block">
                             <span className="text-gray-500">From </span>
                             <span className="font-semibold text-gray-900">{Provider.cost}</span>
                           </div>
-                          <div className="flex gap-2 flex-1 sm:flex-initial">
+                          <div className="flex gap-1.5 sm:gap-2">
                             <button
                               onClick={() => navigate(`/Provider/${Provider.id}`)}
-                              className="flex-1 sm:flex-initial bg-white border-2 border-blue-600 text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition text-xs sm:text-sm"
+                              className="bg-white border border-blue-600 text-blue-600 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold hover:bg-blue-50 transition text-xs"
                             >
-                              View Details
+                              Details
                             </button>
                             <button
                               onClick={() =>
                                 navigate('/book-appointment', {
-                                  state: { Provider, urgencyResult: analysisResult },
+                                  state: { doctor: Provider, urgencyResult: analysisResult },
                                 })
                               }
-                              className="flex-1 sm:flex-initial bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center text-xs sm:text-sm shadow-sm"
+                              className="bg-blue-600 text-white px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold hover:bg-blue-700 transition flex items-center justify-center text-xs shadow-sm"
                             >
-                              Book Now
-                              <ChevronRight className="w-3.5 sm:w-4 h-3.5 sm:h-4 ml-1" />
+                              Book
+                              <ChevronRight className="w-3 sm:w-4 h-3 sm:h-4 ml-0.5" />
                             </button>
                           </div>
                         </div>

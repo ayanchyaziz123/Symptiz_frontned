@@ -205,7 +205,7 @@ interface ErrorResponse {
   [key: string]: any;
 }
 
-const API_URL = 'http://127.0.0.1:8000/api/users/auth';
+const API_URL = 'http://18.222.222.50:8000/api/users/auth';
 
 // Helper function to extract error messages from Django responses
 const extractErrorMessage = (errorData: ErrorResponse): { error: string; fieldErrors?: Record<string, string[]> } => {

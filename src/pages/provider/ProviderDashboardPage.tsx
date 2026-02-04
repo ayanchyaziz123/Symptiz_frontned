@@ -15,11 +15,8 @@ import {
   Settings,
   Bell,
   TrendingUp,
-  MapPin,
-  FileText,
   Activity,
   User,
-  XCircle,
   AlertCircle,
 } from 'lucide-react';
 
@@ -303,71 +300,21 @@ const ProviderDashboardPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Right Column - Quick Actions & Info */}
+            {/* Right Column - Quick Actions */}
             <div className="space-y-6">
-              {/* Quick Actions */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
                 <div className="space-y-3">
                   <QuickActionButton
-                    icon={<Calendar className="w-5 h-5" />}
+                    icon={<Clock className="w-5 h-5" />}
                     label="Manage Availability"
                     onClick={() => navigate('/provider/availability')}
                   />
                   <QuickActionButton
-                    icon={<Users className="w-5 h-5" />}
-                    label="View Patients"
-                    onClick={() => navigate('/provider/patients')}
-                  />
-                  <QuickActionButton
-                    icon={<FileText className="w-5 h-5" />}
-                    label="Medical Records"
-                    onClick={() => navigate('/provider/records')}
-                  />
-                  <QuickActionButton
                     icon={<Settings className="w-5 h-5" />}
                     label="Profile Settings"
-                    onClick={() => navigate('/settings')}
+                    onClick={() => navigate('/provider/settings')}
                   />
-                </div>
-              </div>
-
-              {/* Profile Completion */}
-              <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl shadow-sm p-6 text-white">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold">Profile Completion</h3>
-                  <Activity className="w-6 h-6" />
-                </div>
-                <div className="mb-4">
-                  <div className="flex justify-between text-sm mb-2">
-                    <span>85% Complete</span>
-                    <span>Almost there!</span>
-                  </div>
-                  <div className="w-full bg-blue-800 rounded-full h-2">
-                    <div className="bg-white h-2 rounded-full" style={{ width: '85%' }}></div>
-                  </div>
-                </div>
-                <button className="w-full bg-white text-blue-600 py-2 rounded-lg font-semibold hover:bg-blue-50 transition text-sm">
-                  Complete Profile
-                </button>
-              </div>
-
-              {/* This Week Summary */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">This Week</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between pb-3 border-b border-gray-200">
-                    <span className="text-sm text-gray-600">Total Appointments</span>
-                    <span className="font-bold text-gray-900">32</span>
-                  </div>
-                  <div className="flex items-center justify-between pb-3 border-b border-gray-200">
-                    <span className="text-sm text-gray-600">New Patients</span>
-                    <span className="font-bold text-gray-900">8</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Follow-ups</span>
-                    <span className="font-bold text-gray-900">24</span>
-                  </div>
                 </div>
               </div>
             </div>
