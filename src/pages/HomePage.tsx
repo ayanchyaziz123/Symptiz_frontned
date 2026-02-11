@@ -22,6 +22,7 @@ import {
   fetchProviders,
   fetchCities,
 } from '../store/slices/providerSlice';
+import { getMediaUrl } from '../config/api';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -94,10 +95,7 @@ const HomePage: React.FC = () => {
   // Helper function to get profile picture URL
   const getProfilePictureUrl = (profilePicture: string | null | undefined) => {
     if (!profilePicture) return null;
-    // If it's already a full URL, return it
-    if (profilePicture.startsWith('http')) return profilePicture;
-    // Otherwise, prepend the backend URL
-    return `http://127.0.0.1:8000${profilePicture}`;
+    return getMediaUrl(profilePicture);
   };
 
   // Filter Providers when analysis result changes
@@ -420,7 +418,7 @@ const HomePage: React.FC = () => {
 
                                 <div className="flex gap-1.5 sm:gap-2">
                                   <button
-                                    onClick={() => navigate(`/Provider/${Provider.id}`)}
+                                    onClick={() => navigate(`/provider/${Provider.id}`)}
                                     className="bg-white border border-blue-600 text-blue-600 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs font-semibold hover:bg-blue-50 transition"
                                   >
                                     Details
@@ -663,7 +661,7 @@ const HomePage: React.FC = () => {
                           </div>
                           <div className="flex gap-1.5 sm:gap-2">
                             <button
-                              onClick={() => navigate(`/Provider/${Provider.id}`)}
+                              onClick={() => navigate(`/provider/${Provider.id}`)}
                               className="bg-white border border-blue-600 text-blue-600 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold hover:bg-blue-50 transition text-xs"
                             >
                               Details

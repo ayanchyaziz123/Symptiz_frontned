@@ -98,7 +98,7 @@ const Navbar: React.FC = () => {
                     {/* Menu Items - Role-based */}
                     <div className="py-1">
                       <Link
-                        to="/dashboard"
+                        to={userType === 'provider' ? '/provider/dashboard' : userType === 'admin' ? '/admin/dashboard' : '/dashboard'}
                         onClick={() => setIsDropdownOpen(false)}
                         className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition"
                       >
@@ -107,7 +107,7 @@ const Navbar: React.FC = () => {
                       </Link>
 
                       <Link
-                        to="/settings"
+                        to={userType === 'provider' ? '/provider/settings' : '/settings'}
                         onClick={() => setIsDropdownOpen(false)}
                         className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition"
                       >

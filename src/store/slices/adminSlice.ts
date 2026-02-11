@@ -1,7 +1,8 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config/api';
 
-const API_URL = 'http://18.222.222.50:8000/api';
+const API_URL = `${API_BASE_URL}/api`;
 
 // Types
 interface AdminStats {

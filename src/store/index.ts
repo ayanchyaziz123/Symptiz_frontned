@@ -5,6 +5,7 @@ import symptomReducer from './slices/symptomSlice';
 import providerReducer from './slices/providerSlice';
 import appointmentReducer from './slices/appointmentSlice';
 import adminReducer from './slices/adminSlice';
+import userReducer from './slices/userSlice';
 
 export const store = configureStore({
   reducer: {
@@ -13,6 +14,7 @@ export const store = configureStore({
     provider: providerReducer,
     appointment: appointmentReducer,
     admin: adminReducer,
+    user: userReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

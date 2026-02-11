@@ -17,8 +17,9 @@ import {
   Stethoscope,
   AlertCircle,
 } from 'lucide-react';
+import { API_ENDPOINTS, getMediaUrl } from '../../config/api';
 
-const API_URL = 'http://127.0.0.1:8000/api/providers';
+const API_URL = API_ENDPOINTS.providers;
 
 interface Specialty {
   id: number;
@@ -230,10 +231,10 @@ const DoctorDetails: React.FC = () => {
           <div className="flex flex-col md:flex-row gap-4 md:gap-6">
             {/* Profile Picture */}
             <div className="flex-shrink-0 mx-auto md:mx-0">
-              <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center">
+              <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center overflow-hidden">
                 {doctor.profile_picture ? (
                   <img
-                    src={doctor.profile_picture}
+                    src={getMediaUrl(doctor.profile_picture)}
                     alt={doctor.full_name}
                     className="w-full h-full object-cover rounded-xl"
                   />

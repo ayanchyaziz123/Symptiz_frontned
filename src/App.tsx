@@ -30,17 +30,6 @@ import ResetPasswordPage from './pages/shared/ResetPasswordPage';
 import ProviderDetailsPage from './pages/shared/ProviderDetailsPage';
 
 
-// Protected Route for authenticated users only
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <>{children}</>;
-};
-
 // Role Protected Route - checks both authentication and user role
 const RoleProtectedRoute: React.FC<{
   children: React.ReactNode;
@@ -156,13 +145,13 @@ const AppContent: React.FC = () => {
               }
             />
 
-            {/* Protected routes - need to be logged in */}
+            {/* Patient Dashboard - only for patients */}
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute>
+                <RoleProtectedRoute allowedRoles={['patient']}>
                   <DashboardPage />
-                </ProtectedRoute>
+                </RoleProtectedRoute>
               }
             />
             <Route
@@ -201,13 +190,14 @@ const AppContent: React.FC = () => {
             {/* Backward compatibility - redirect old /profile to /dashboard */}
             <Route path="/profile" element={<Navigate to="/dashboard" replace />} />
             
-            <Route 
-              path="/settings" 
+            {/* Patient Settings - only for patients */}
+            <Route
+              path="/settings"
               element={
-                <ProtectedRoute>
+                <RoleProtectedRoute allowedRoles={['patient']}>
                   <SettingsPage />
-                </ProtectedRoute>
-              } 
+                </RoleProtectedRoute>
+              }
             />
             
             {/* Book Appointment - Can be accessed by anyone, but better experience when logged in */}

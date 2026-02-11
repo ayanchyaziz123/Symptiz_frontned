@@ -21,13 +21,14 @@ import {
 } from 'lucide-react';
 import { Provider } from '../../types';
 import { useAppSelector } from '../../store';
+import { API_ENDPOINTS, getMediaUrl } from '../../config/api';
 
 interface LocationState {
   doctor?: Provider;
   urgencyResult?: any;
 }
 
-const API_URL = 'http://127.0.0.1:8000/api/appointments';
+const API_URL = API_ENDPOINTS.appointments;
 
 const BookAppointment: React.FC = () => {
   const navigate = useNavigate();
@@ -57,8 +58,7 @@ const BookAppointment: React.FC = () => {
   // Helper function to get profile picture URL
   const getProfilePictureUrl = (profilePicture: string | null | undefined) => {
     if (!profilePicture) return null;
-    if (profilePicture.startsWith('http')) return profilePicture;
-    return `http://127.0.0.1:8000${profilePicture}`;
+    return getMediaUrl(profilePicture);
   };
 
   // Helper function to get initials for avatar

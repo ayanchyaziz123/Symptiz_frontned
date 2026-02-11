@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios, { AxiosError } from 'axios';
+import { API_ENDPOINTS } from '../../config/api';
 
 interface AuthState {
   userId: number | null;
@@ -205,7 +206,7 @@ interface ErrorResponse {
   [key: string]: any;
 }
 
-const API_URL = 'http://18.222.222.50:8000/api/users/auth';
+const API_URL = `${API_ENDPOINTS.users}/auth`;
 
 // Helper function to extract error messages from Django responses
 const extractErrorMessage = (errorData: ErrorResponse): { error: string; fieldErrors?: Record<string, string[]> } => {

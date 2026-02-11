@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../../config/api';
 
 export interface Appointment {
   id: number;
@@ -66,7 +67,7 @@ const initialState: AppointmentState = {
   bookingSuccess: false,
 };
 
-const API_URL = 'http://18.222.222.50:8000/api/appointments';
+const API_URL = API_ENDPOINTS.appointments;
 
 // Async thunk for fetching all appointments
 export const fetchAppointments = createAsyncThunk<

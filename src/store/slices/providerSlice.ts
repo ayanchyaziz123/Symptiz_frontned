@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { Provider } from '../../types';
+import { API_BASE_URL } from '../../config/api';
 
 // Provider Dashboard Types
 interface ProviderStats {
@@ -114,6 +115,7 @@ interface BackendProviderList {
   total_reviews: number;
   accepting_new_patients: boolean;
   video_visit_available: boolean;
+  profile_picture: string | null;  // Added for profile picture
   primary_clinic: {
     id: number;
     name: string;
@@ -161,7 +163,7 @@ interface BackendProviderSearch {
 
 type BackendProvider = BackendProviderList | BackendProviderSearch;
 
-const API_URL = 'http://18.222.222.50:8000/api';
+const API_URL = `${API_BASE_URL}/api`;
 
 const initialProviders: Provider[] = [
   {
@@ -353,7 +355,7 @@ const mapBackendProvider = (backendProvider: BackendProvider): Provider => {
     primaryClinic = backendProvider.primary_clinic;
     specialty = backendProvider.specialties.length > 0 ? backendProvider.specialties[0] : 'General Practice';
     languages = ['English']; // Default for list format
-    profilePicture = null; // List format doesn't include user details
+    profilePicture = backendProvider.profile_picture || null;  // Now includes profile_picture
   }
 
   // Generate a simple cost description based on clinic type
@@ -639,6 +641,52 @@ export const updateOwnProfile = createAsyncThunk(
   }
 );
 
+// Async thunk for uploading profile picture
+export const uploadProfilePicture = createAsyncThunk(
+  'provider/uploadProfilePicture',
+  async (file: File, { rejectWithValue, getState }) => {
+    try {
+      const state = getState() as any;
+      const token = state.auth.token;
+
+      const formData = new FormData();
+      formData.append('profile_picture', file);
+
+      const response = await axios.post<{ message: string; profile_picture: string | null }>(
+        `${API_URL}/users/profile/picture/`,
+        formData,
+        {
+          headers: {
+            Authorization: `Token ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to upload profile picture');
+    }
+  }
+);
+
+// Async thunk for deleting profile picture
+export const deleteProfilePicture = createAsyncThunk(
+  'provider/deleteProfilePicture',
+  async (_, { rejectWithValue, getState }) => {
+    try {
+      const state = getState() as any;
+      const token = state.auth.token;
+
+      await axios.delete(`${API_URL}/users/profile/picture/`, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      return null;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to delete profile picture');
+    }
+  }
+);
+
 // Helper function to apply all filters
 const applyAllFilters = (state: ProviderState) => {
   let filtered = state.allProviders;
@@ -855,6 +903,18 @@ const providerSlice = createSlice({
       })
       .addCase(updateOwnProfile.fulfilled, (state, action) => {
         state.ownProfile = action.payload;
+      })
+      // Profile Picture Upload
+      .addCase(uploadProfilePicture.fulfilled, (state, action) => {
+        if (state.ownProfile && state.ownProfile.user) {
+          state.ownProfile.user.profile_picture = action.payload.profile_picture;
+        }
+      })
+      // Profile Picture Delete
+      .addCase(deleteProfilePicture.fulfilled, (state) => {
+        if (state.ownProfile && state.ownProfile.user) {
+          state.ownProfile.user.profile_picture = null;
+        }
       });
   },
 });
